@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme {
+  --color-oregon-blue: #005696;
+}
+
+/* 
+  Tailwind v4 automatically handles the reset, 
+  so we just need to set our global background here.
+*/
+body {
+  background-color: #f3f4f6; /* Light gray background */
+}
