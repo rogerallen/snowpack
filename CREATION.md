@@ -42,3 +42,27 @@ Checked via `npm run build`
 git add .
 git commit -m "Initial commit: Vite scaffold and dependencies"
 ```
+
+## Phase 2: Styling
+
+Complete since we used tailwind v4
+
+## Phase 3:
+
+Created `src/hooks/useSnowData.ts` to fetch data from the Powderlines API.
+
+## Phase 4: Chart Component
+
+Created `src/components/SnowpackChart.tsx` using Recharts.
+- Implemented the `useSnowData` hook.
+- Added the "Oregon Blue" custom color from Tailwind config.
+- Disabled initial animation for instant data rendering.
+
+## Phase 5: Assembly
+
+Updated `src/App.tsx` to:
+- Remove the default Vite boilerplate.
+- Import and render the `SnowpackChart`.
+- Add the header with the `MountainSnow` icon.
+
+Deleted `src/App.css` as it is no longer needed with Tailwind utility classes.
