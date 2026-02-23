@@ -40,15 +40,15 @@ export const useSnowData = (days = 365) => {
         const response = await axios.get(url);
         const serverData: ServerDataPoint[] = response.data.data;
 
-        // Group data by "snow year" (Aug 1 - Jul 31)
+        // Group data by "snow year" (Sep 1 - Aug 31)
         const seasonalData: SeasonalPlotlyData = {};
         for (const item of serverData) {
           if (!item.date) continue;
 
           const date = new Date(item.date);
-          // getUTCMonth is 0-indexed. August is 7.
+          // getUTCMonth is 0-indexed. September is 8.
           const seasonYear =
-            date.getUTCMonth() >= 7
+            date.getUTCMonth() >= 8
               ? date.getUTCFullYear() + 1
               : date.getUTCFullYear();
 
@@ -63,9 +63,9 @@ export const useSnowData = (days = 365) => {
           }
 
           // Normalize date for plotting on a common seasonal axis.
-          // A season runs from Aug 1 to Jul 31. We can represent this
+          // A season runs from Sep 1 to Aug 31. We can represent this
           // by mapping dates to a common year range, e.g., 2000-2001.
-          const plotYear = date.getUTCMonth() >= 7 ? 2000 : 2001;
+          const plotYear = date.getUTCMonth() >= 8 ? 2000 : 2001;
           const normalizedDate = `${plotYear}-${(date.getUTCMonth() + 1)
             .toString()
             .padStart(

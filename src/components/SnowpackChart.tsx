@@ -117,8 +117,8 @@ const SnowpackChart = () => {
         xaxis: {
           title: 'Date',
           tickformat: '%b', // Format ticks as abbreviated month names (e.g., Aug, Sep)
-          // Set the range to be from Aug 1 to Jul 31
-          range: ['2000-08-01', '2001-07-31'],
+          // Set the range to be from Sep 1 to Aug 31
+          range: ['2000-09-01', '2001-08-31'],
         },
         yaxis: { title: 'Snow Depth (inches)' },
         legend: {
