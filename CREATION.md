@@ -100,3 +100,7 @@ npm install -D concurrently nodemon
 ### 2. Create the Server
 
 Create a new file named server.js in the root of your project. This file contains the caching and proxying logic.
+
+### N. Get SNOTEL sites
+
+Raw data from https://powderlines.kellysoftware.org/api/stations was transformed.
