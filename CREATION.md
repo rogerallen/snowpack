@@ -66,3 +66,11 @@ Updated `src/App.tsx` to:
 - Add the header with the `MountainSnow` icon.
 
 Deleted `src/App.css` as it is no longer needed with Tailwind utility classes.
+
+## Later
+
+Install prettier
+
+```
+npm install -D prettier eslint-config-prettier eslint-plugin-react
+```

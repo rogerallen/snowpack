@@ -3,18 +3,18 @@ import axios from 'axios';
 
 // The shape of the raw JSON from the API
 interface ApiDataPoint {
-  "Date": string;
-  "Snow Water Equivalent (in)": string;
-  "Snow Depth (in)": string;
-  "Observed Air Temperature (degrees farenheit)": string;
+  Date: string;
+  'Snow Water Equivalent (in)': string;
+  'Snow Depth (in)': string;
+  'Observed Air Temperature (degrees farenheit)': string;
 }
 
 // The clean shape we want to use in our app
 export interface SnowDataPoint {
   date: string;
-  swe: number;       // Snow Water Equivalent
-  depth: number;     // Snow Depth
-  temp: number;      // Temperature
+  swe: number; // Snow Water Equivalent
+  depth: number; // Snow Depth
+  temp: number; // Temperature
 }
 
 // 651:OR:SNTL is Mt. Hood Test Site
@@ -30,17 +30,20 @@ export const useSnowData = (days = 365) => {
       try {
         setLoading(true);
         // Using the working URL you found
-        const url = `https://powderlines.kellysoftware.org/api/station/${STATION_ID}?days=${days}`;
-        
+        const url = `https://powderlines.kellysoftware.org/api/station/${STATION_ID}?days=${
+          days
+        }`;
+
         const response = await axios.get(url);
         const rawData: ApiDataPoint[] = response.data.data;
 
         // Transform the data
         const formattedData = rawData.map((item) => ({
-          date: item["Date"],
-          swe: parseFloat(item["Snow Water Equivalent (in)"]) || 0,
-          depth: parseFloat(item["Snow Depth (in)"]) || 0,
-          temp: parseFloat(item["Observed Air Temperature (degrees farenheit)"]) || 0,
+          date: item['Date'],
+          swe: parseFloat(item['Snow Water Equivalent (in)']) || 0,
+          depth: parseFloat(item['Snow Depth (in)']) || 0,
+          temp:
+            parseFloat(item['Observed Air Temperature (degrees farenheit)']) || 0,
         }));
 
         setData(formattedData);
