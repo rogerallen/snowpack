@@ -11,6 +11,7 @@ interface ServerDataPoint {
 
 interface SeasonTraceData {
   dates: string[];
+  originalDates: string[];
   depths: number[];
   swes: number[];
   temps: number[];
@@ -54,6 +55,7 @@ export const useSnowData = (days = 365) => {
           if (!seasonalData[seasonYear]) {
             seasonalData[seasonYear] = {
               dates: [],
+              originalDates: [],
               depths: [],
               swes: [],
               temps: [],
@@ -72,6 +74,7 @@ export const useSnowData = (days = 365) => {
             )}-${date.getUTCDate().toString().padStart(2, '0')}`;
 
           seasonalData[seasonYear].dates.push(normalizedDate);
+          seasonalData[seasonYear].originalDates.push(item.date);
           seasonalData[seasonYear].depths.push(item.depth ?? 0);
           seasonalData[seasonYear].swes.push(item.snow_water_equivalent ?? 0);
           seasonalData[seasonYear].temps.push(item.temperature ?? 0);
@@ -82,6 +85,7 @@ export const useSnowData = (days = 365) => {
           const season = seasonalData[year];
           // The data was pushed in descending order from the API, so reverse to get ascending.
           season.dates.reverse();
+          season.originalDates.reverse();
           season.depths.reverse();
           season.swes.reverse();
           season.temps.reverse();
