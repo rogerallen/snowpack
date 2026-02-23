@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-// The shape of the raw JSON from the API
-interface ApiDataPoint {
-  Date: string;
-  'Snow Water Equivalent (in)': string;
-  'Snow Depth (in)': string;
-  'Observed Air Temperature (degrees farenheit)': string;
+// The clean shape sent from our server API
+interface ServerDataPoint {
+  date: string;
+  depth: number | null;
+  snow_water_equivalent: number | null;
+  temperature: number | null;
 }
 
 // The clean shape we want to use in our app
@@ -36,18 +36,15 @@ export const useSnowData = (days = 365) => {
         const url = `${apiBaseUrl}/api/snow?station=${STATION_ID}&days=${days}`;
 
         const response = await axios.get(url);
-        const rawData: ApiDataPoint[] = response.data.data;
+        const serverData: ServerDataPoint[] = response.data.data;
 
-        // Transform and sort the data by date ascending
-        const formattedData = rawData
+        // The server now sends clean data, so we just need to handle nulls and sort.
+        const formattedData = serverData
           .map((item) => ({
-            date: item['Date'],
-            swe: parseFloat(item['Snow Water Equivalent (in)']) || 0,
-            depth: parseFloat(item['Snow Depth (in)']) || 0,
-            temp:
-              parseFloat(
-                item['Observed Air Temperature (degrees farenheit)'],
-              ) || 0,
+            date: item.date,
+            swe: item.snow_water_equivalent ?? 0,
+            depth: item.depth ?? 0,
+            temp: item.temperature ?? 0,
           }))
           .sort((a, b) => a.date.localeCompare(b.date));
 

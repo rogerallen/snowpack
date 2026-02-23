@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 # our cache
-api_cache.db
+snow_cache.db

@@ -112,7 +112,12 @@ const SnowpackChart = () => {
               position: 'insideLeft',
             }}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip
+            content={<CustomTooltip />}
+            shared={false}
+            trigger="hover"
+            wrapperStyle={{ outline: 'none' }}
+          />
           <Legend />
           {seasons.map((season, index) => (
             <Line
@@ -124,6 +129,7 @@ const SnowpackChart = () => {
               stroke={SEASON_COLORS[index % SEASON_COLORS.length]}
               strokeWidth={2}
               dot={false}
+              activeDot={{ r: 6, strokeWidth: 2 }}
               connectNulls
             />
           ))}
