@@ -3,8 +3,8 @@ import Plot from 'react-plotly.js';
 import type { PlotHoverEvent } from 'plotly.js';
 import { useSnowData } from '../hooks/useSnowData';
 
-const SnowpackChart = () => {
-  const { data, loading, error } = useSnowData(365 * 40); // Fetch 40 years of data
+const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
+  const { data, loading, error } = useSnowData(selectedStation, 365 * 40); // Fetch 40 years of data
   const [hoveredSeason, setHoveredSeason] = useState<string | null>(null);
   const [revision, setRevision] = useState(0);
 
@@ -85,7 +85,7 @@ const SnowpackChart = () => {
     if (event.points.length > 0) {
       const point = event.points[0];
       // The name of the trace is available in the fullData object
-      setHoveredSeason((point.fullData as any).name);
+      setHoveredSeason((point.fullData as { name: string }).name);
     }
   };
 
@@ -113,7 +113,7 @@ const SnowpackChart = () => {
           bordercolor: '#aec7e8',
         },
         datarevision: revision,
-        title: 'Seasonal Snow Depth at Mt. Hood',
+        title: 'Seasonal Snow Depth',
         xaxis: {
           title: 'Date',
           tickformat: '%b', // Format ticks as abbreviated month names (e.g., Aug, Sep)

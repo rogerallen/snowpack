@@ -19,23 +19,21 @@ interface SeasonTraceData {
 
 export type SeasonalPlotlyData = Record<string, SeasonTraceData>;
 
-// 651:OR:SNTL is Mt. Hood Test Site
-const STATION_ID = '651:OR:SNTL';
-
-export const useSnowData = (days = 365) => {
+export const useSnowData = (stationId: string, days = 365) => {
   const [data, setData] = useState<SeasonalPlotlyData>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!stationId) return;
       setLoading(true);
       setError(null);
       try {
         // Use environment variables to point to the correct API endpoint.
         // In development, it points to our Node server. In production, it's a relative path.
         const apiBaseUrl = import.meta.env.DEV ? 'http://localhost:3001' : '';
-        const url = `${apiBaseUrl}/api/snow?station=${STATION_ID}&days=${days}`;
+        const url = `${apiBaseUrl}/api/snow?station=${stationId}&days=${days}`;
 
         const response = await axios.get(url);
         const serverData: ServerDataPoint[] = response.data.data;
@@ -108,7 +106,8 @@ export const useSnowData = (days = 365) => {
       }
     };
     fetchData();
-  }, [days]);
+  }, [stationId, days]);
 
   return { data, loading, error };
 };
+

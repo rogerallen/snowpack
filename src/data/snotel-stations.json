@@ -1,0 +1,72 @@
+[
+  {
+    "id": "651:OR:SNTL",
+    "name": "Mt. Hood Test Site",
+    "lat": 45.32,
+    "lon": -121.72,
+    "state": "OR"
+  },
+  {
+    "id": "301:CA:SNTL",
+    "name": "Adin Mtn",
+    "lat": 41.24,
+    "lon": -120.79,
+    "state": "CA"
+  },
+  {
+    "id": "356:CA:SNTL",
+    "name": "Blue Lakes",
+    "lat": 38.61,
+    "lon": -119.92,
+    "state": "CA"
+  },
+  {
+    "id": "1067:CA:SNTL",
+    "name": "Carson Pass",
+    "lat": 38.69,
+    "lon": -120.00,
+    "state": "CA"
+  },
+  {
+    "id": "302:OR:SNTL",
+    "name": "Aneroid Lake #2",
+    "lat": 45.21,
+    "lon": -117.19,
+    "state": "OR"
+  },
+  {
+    "id": "1000:OR:SNTL",
+    "name": "Annie Springs",
+    "lat": 42.87,
+    "lon": -122.17,
+    "state": "OR"
+  },
+  {
+    "id": "343:OR:SNTL",
+    "name": "Bigelow Camp",
+    "lat": 42.08,
+    "lon": -123.34,
+    "state": "OR"
+  },
+  {
+    "id": "908:WA:SNTL",
+    "name": "Alpine Meadows",
+    "lat": 47.78,
+    "lon": -121.70,
+    "state": "WA"
+  },
+  {
+    "id": "352:WA:SNTL",
+    "name": "Blewett Pass",
+    "lat": 47.35,
+    "lon": -120.68,
+    "state": "WA"
+  },
+  {
+    "id": "375:WA:SNTL",
+    "name": "Bumping Ridge",
+    "lat": 46.81,
+    "lon": -121.33,
+    "state": "WA"
+  }
+]

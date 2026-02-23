@@ -1,7 +1,17 @@
+import { useState } from 'react';
 import SnowpackChart from './components/SnowpackChart';
+import StationMap from './components/StationMap';
 import { MountainSnow } from 'lucide-react';
+import stations from './data/snotel-stations.json';
 
 function App() {
+  const [selectedStation, setSelectedStation] = useState('651:OR:SNTL');
+
+  const getStationName = (stationId: string) => {
+    const station = stations.find(s => s.id === stationId);
+    return station ? station.name : 'Unknown Station';
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -14,13 +24,16 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-5xl mx-auto px-4 py-8">
-        <h2 className="text-xl font-bold text-gray-900">Mt Hood Data:</h2>
+        <h2 className="text-xl font-bold text-gray-900">{getStationName(selectedStation)} Data:</h2>
         <div className="grid grid-cols-1 gap-6">
-          <SnowpackChart />
+          <SnowpackChart selectedStation={selectedStation} />
 
-          {/* Placeholder for future Map component */}
-          <div className="flex h-64 items-center justify-center rounded-xl border border-gray-200 bg-white p-6 text-gray-400 shadow-sm">
-            Map Component Coming Soon
+          {/* Map component */}
+          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <StationMap
+              selectedStation={selectedStation}
+              setSelectedStation={setSelectedStation}
+            />
           </div>
         </div>
       </main>
