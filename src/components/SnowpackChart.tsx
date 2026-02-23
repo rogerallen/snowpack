@@ -41,7 +41,9 @@ const SnowpackChart: React.FC = () => {
           <span className="text-4xl font-bold text-oregon-blue">
             {currentSWE.toFixed(1)}"
           </span>
-          <span className="text-gray-500 font-medium">Snow Water Equivalent</span>
+          <span className="text-gray-500 font-medium">
+            Snow Water Equivalent
+          </span>
         </div>
       </div>
 
@@ -87,7 +89,9 @@ const SnowpackChart: React.FC = () => {
                 border: 'none',
                 boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
               }}
-              labelFormatter={(label) => format(parseISO(label), 'MMMM d, yyyy')}
+              labelFormatter={(label) =>
+                format(parseISO(label), 'MMMM d, yyyy')
+              }
               formatter={(value) =>
                 typeof value === 'number'
                   ? [`${value.toFixed(1)} inches`, 'Water Equivalent']

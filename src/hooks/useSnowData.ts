@@ -43,7 +43,8 @@ export const useSnowData = (days = 365) => {
           swe: parseFloat(item['Snow Water Equivalent (in)']) || 0,
           depth: parseFloat(item['Snow Depth (in)']) || 0,
           temp:
-            parseFloat(item['Observed Air Temperature (degrees farenheit)']) || 0,
+            parseFloat(item['Observed Air Temperature (degrees farenheit)']) ||
+            0,
         }));
 
         setData(formattedData);

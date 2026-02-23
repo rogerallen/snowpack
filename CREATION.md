@@ -17,9 +17,9 @@ npm create vite@latest . -- --template react-ts
 npm install
 ```
 
-I ran `npm audit` and gemini suggested we override the minimatch library.  No vulnerabilities after that.
+I ran `npm audit` and gemini suggested we override the minimatch library. No vulnerabilities after that.
 
-### Install Libraries 
+### Install Libraries
 
 We need Tailwind for styling, Recharts for the graph, Axios for data fetching, and date-fns for time formatting.
 
@@ -54,6 +54,7 @@ Created `src/hooks/useSnowData.ts` to fetch data from the Powderlines API.
 ## Phase 4: Chart Component
 
 Created `src/components/SnowpackChart.tsx` using Recharts.
+
 - Implemented the `useSnowData` hook.
 - Added the "Oregon Blue" custom color from Tailwind config.
 - Disabled initial animation for instant data rendering.
@@ -61,6 +62,7 @@ Created `src/components/SnowpackChart.tsx` using Recharts.
 ## Phase 5: Assembly
 
 Updated `src/App.tsx` to:
+
 - Remove the default Vite boilerplate.
 - Import and render the `SnowpackChart`.
 - Add the header with the `MountainSnow` icon.
