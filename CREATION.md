@@ -76,3 +76,27 @@ Install prettier
 ```
 npm install -D prettier eslint-config-prettier eslint-plugin-react
 ```
+
+# To Do List
+
+- [x] cache data locally (on the server) to avoid re-fetching
+- [ ] grab data back to the 1980s
+- [ ] graph yearly seasons from July 1, YearX-1 to June 30, YearX
+- [ ] add buttons to highlight 80s, 90s, 00s, 10s and 20s seasons
+- [ ] add map component
+- [ ] select different locations
+
+## Backend server
+
+### 1. Install Dependencies
+
+First, we'll need express for the server, cors to handle cross-origin requests in development, and concurrently and nodemon to make running both servers easy.
+
+```bash
+npm install express cors
+npm install -D concurrently nodemon
+```
+
+### 2. Create the Server
+
+Create a new file named server.js in the root of your project. This file contains the caching and proxying logic.

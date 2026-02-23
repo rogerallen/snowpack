@@ -27,12 +27,13 @@ export const useSnowData = (days = 365) => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        setLoading(true);
-        // Using the working URL you found
-        const url = `https://powderlines.kellysoftware.org/api/station/${STATION_ID}?days=${
-          days
-        }`;
+        // Use environment variables to point to the correct API endpoint.
+        // In development, it points to our Node server. In production, it's a relative path.
+        const apiBaseUrl = import.meta.env.DEV ? 'http://localhost:3001' : '';
+        const url = `${apiBaseUrl}/api/snow?station=${STATION_ID}&days=${days}`;
 
         const response = await axios.get(url);
         const rawData: ApiDataPoint[] = response.data.data;
@@ -48,7 +49,6 @@ export const useSnowData = (days = 365) => {
         }));
 
         setData(formattedData);
-        setError(null);
       } catch (err) {
         console.error(err);
         setError('Failed to fetch snow data');
