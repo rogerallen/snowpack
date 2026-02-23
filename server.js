@@ -50,7 +50,14 @@ if (!snowDataColumns.some((col) => col.name === 'temperature')) {
   console.log('[DB Migration] Adding "temperature" column to snow_data table.');
   db.exec('ALTER TABLE snow_data ADD COLUMN temperature REAL');
 }
-const CACHE_DURATION_SECONDS = 10 * 60; // 10 minutes
+
+// How long before the server considers its own cache stale and re-fetches from the upstream API.
+// The historical data does not change, so we can set this to a very long time.
+const SERVER_CACHE_STALE_SECONDS = 30 * 24 * 60 * 60; // 30 days
+
+// How long the browser is allowed to cache the response from our API.
+// This is kept short to ensure clients get reasonably fresh data if the server re-fetches.
+const BROWSER_CACHE_DURATION_SECONDS = 10 * 60; // 10 minutes
 
 const getStationMetadataStmt = db.prepare(
   'SELECT last_fetch_timestamp, information FROM station_metadata WHERE station_id = ?',
@@ -91,7 +98,8 @@ app.get('/api/snow', async (req, res) => {
   const metadata = getStationMetadataStmt.get(station);
   const isCacheStale =
     !metadata ||
-    Date.now() - metadata.last_fetch_timestamp > CACHE_DURATION_SECONDS * 1000;
+    Date.now() - metadata.last_fetch_timestamp >
+      SERVER_CACHE_STALE_SECONDS * 1000;
 
   let cachedData = [];
   let isCacheInsufficient = false;
@@ -174,7 +182,7 @@ app.get('/api/snow', async (req, res) => {
       );
       res.setHeader(
         'Cache-Control',
-        `public, max-age=${CACHE_DURATION_SECONDS}`,
+        `public, max-age=${BROWSER_CACHE_DURATION_SECONDS}`,
       );
       // Return the data we just fetched and cached
       return res.status(200).json(responsePayload);
@@ -209,7 +217,10 @@ app.get('/api/snow', async (req, res) => {
 
   // 4. Serve from cache
   console.log(`[Cache HIT] for station: ${station}, days: ${days}`);
-  res.setHeader('Cache-Control', `public, max-age=${CACHE_DURATION_SECONDS}`);
+  res.setHeader(
+    'Cache-Control',
+    `public, max-age=${BROWSER_CACHE_DURATION_SECONDS}`,
+  );
   const stationInfo = metadata.information
     ? JSON.parse(metadata.information)
     : null;
