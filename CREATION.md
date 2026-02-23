@@ -80,8 +80,8 @@ npm install -D prettier eslint-config-prettier eslint-plugin-react
 # To Do List
 
 - [x] cache data locally (on the server) to avoid re-fetching
-- [ ] grab data back to the 1980s
-- [ ] graph yearly seasons from July 1, YearX-1 to June 30, YearX
+- [x] grab data back to the 1980s (currently limited to 2020)
+- [x] graph yearly seasons from July 1, YearX-1 to June 30, YearX
 - [ ] add buttons to highlight 80s, 90s, 00s, 10s and 20s seasons
 - [ ] add map component
 - [ ] select different locations
