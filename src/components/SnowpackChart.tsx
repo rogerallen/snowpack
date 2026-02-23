@@ -52,9 +52,9 @@ const SEASON_COLORS = [
 ];
 
 const SnowpackChart = () => {
-  // Fetch data back to 2020 for now
+  // Fetch data back to the 1981 season (starts Aug 1, 1980)
   const days = Math.ceil(
-    (new Date().getTime() - new Date('2020-01-01').getTime()) /
+    (new Date().getTime() - new Date('1980-08-01').getTime()) /
       (1000 * 60 * 60 * 24),
   );
   const { data, loading, error } = useSnowData(days);
@@ -93,7 +93,7 @@ const SnowpackChart = () => {
       <h2 className="mb-4 text-center text-2xl font-bold">
         Seasonal Snow Depth Comparison
       </h2>
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width="100%" height={700}>
         <LineChart margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
