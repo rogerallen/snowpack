@@ -3,6 +3,7 @@ import axios from 'axios';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { DatabaseSync } from 'node:sqlite';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,10 +11,25 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = process.env.PORT || 3001;
 
-// A simple in-memory cache.
-// For a more robust production environment, consider a persistent cache like Redis.
-const cache = new Map();
+// A simple file-based cache using SQLite. This provides persistence
+// across server restarts without the complexity of a separate Redis server.
+const db = new DatabaseSync('api_cache.db');
+db.exec(`
+  CREATE TABLE IF NOT EXISTS api_cache (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    timestamp INTEGER NOT NULL
+  )
+`);
 const CACHE_DURATION_SECONDS = 10 * 60; // 10 minutes
+
+const getCacheStmt = db.prepare(
+  'SELECT value, timestamp FROM api_cache WHERE key = ?',
+);
+const setCacheStmt = db.prepare(`
+  INSERT INTO api_cache (key, value, timestamp) VALUES (?, ?, ?)
+  ON CONFLICT(key) DO UPDATE SET value=excluded.value, timestamp=excluded.timestamp
+`);
 
 // Enable CORS for all routes. This is useful for development when the
 // client (Vite dev server) and this server are on different ports.
@@ -26,15 +42,15 @@ app.get('/api/snow', async (req, res) => {
   const cacheKey = `snowdata-${station}-${days}`;
 
   // 1. Check cache
-  if (cache.has(cacheKey)) {
-    const cachedEntry = cache.get(cacheKey);
+  const cachedEntry = getCacheStmt.get(cacheKey);
+  if (cachedEntry) {
     if (Date.now() - cachedEntry.timestamp < CACHE_DURATION_SECONDS * 1000) {
       console.log(`[Cache HIT] for key: ${cacheKey}`);
       res.setHeader(
         'Cache-Control',
         `public, max-age=${CACHE_DURATION_SECONDS}`,
       );
-      return res.status(200).json(cachedEntry.data);
+      return res.status(200).json(JSON.parse(cachedEntry.value));
     }
   }
   console.log(`[Cache MISS] for key: ${cacheKey}`);
@@ -46,7 +62,7 @@ app.get('/api/snow', async (req, res) => {
 
     // 3. Store in cache and return
     const responseData = apiResponse.data;
-    cache.set(cacheKey, { timestamp: Date.now(), data: responseData });
+    setCacheStmt.run(cacheKey, JSON.stringify(responseData), Date.now());
 
     res.setHeader('Cache-Control', `public, max-age=${CACHE_DURATION_SECONDS}`);
     return res.status(200).json(responseData);
