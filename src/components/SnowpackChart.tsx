@@ -39,7 +39,7 @@ const SnowpackChart: React.FC = () => {
         <div className="flex items-baseline gap-2 mt-1">
           {/* Using the custom color defined in index.css */}
           <span className="text-4xl font-bold text-oregon-blue">
-            {currentSWE.toFixed(1)}"
+            {`${currentSWE.toFixed(1)}"`}
           </span>
           <span className="text-gray-500 font-medium">
             Snow Water Equivalent
