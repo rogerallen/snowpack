@@ -82,9 +82,9 @@ npm install -D prettier eslint-config-prettier eslint-plugin-react
 - [x] cache data locally (on the server) to avoid re-fetching
 - [x] grab data back to the 1980s
 - [x] graph yearly seasons from August 1, YearX-1 to July 31, YearX
+- [x] add map component
+- [x] select different locations
 - [ ] add buttons to highlight 80s, 90s, 00s, 10s and 20s seasons
-- [ ] add map component
-- [ ] select different locations
 
 ## Backend server
 
