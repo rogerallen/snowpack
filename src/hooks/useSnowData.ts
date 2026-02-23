@@ -9,19 +9,20 @@ interface ServerDataPoint {
   temperature: number | null;
 }
 
-// The clean shape we want to use in our app
-export interface SnowDataPoint {
-  date: string;
-  swe: number; // Snow Water Equivalent
-  depth: number; // Snow Depth
-  temp: number; // Temperature
+interface SeasonTraceData {
+  dates: string[];
+  depths: number[];
+  swes: number[];
+  temps: number[];
 }
+
+export type SeasonalPlotlyData = Record<string, SeasonTraceData>;
 
 // 651:OR:SNTL is Mt. Hood Test Site
 const STATION_ID = '651:OR:SNTL';
 
 export const useSnowData = (days = 365) => {
-  const [data, setData] = useState<SnowDataPoint[]>([]);
+  const [data, setData] = useState<SeasonalPlotlyData>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,27 +39,63 @@ export const useSnowData = (days = 365) => {
         const response = await axios.get(url);
         const serverData: ServerDataPoint[] = response.data.data;
 
-        // The server now sends clean data, so we just need to handle nulls and sort.
-        const formattedData = serverData
-          .map((item) => ({
-            date: item.date,
-            swe: item.snow_water_equivalent ?? 0,
-            depth: item.depth ?? 0,
-            temp: item.temperature ?? 0,
-          }))
-          .sort((a, b) => a.date.localeCompare(b.date));
+        // Group data by "snow year" (Aug 1 - Jul 31)
+        const seasonalData: SeasonalPlotlyData = {};
+        for (const item of serverData) {
+          if (!item.date) continue;
 
-        // Clean up data dropouts using a forward-fill approach.
-        for (let i = 1; i < formattedData.length; i++) {
-          // If current depth is 0 but previous was > 0, it's likely a sensor dropout.
-          // Carry forward the previous day's value for a more realistic graph.
-          if (formattedData[i].depth === 0 && formattedData[i - 1].depth > 0) {
-            formattedData[i].depth = formattedData[i - 1].depth;
-            formattedData[i].swe = formattedData[i - 1].swe;
+          const date = new Date(item.date);
+          // getUTCMonth is 0-indexed. August is 7.
+          const seasonYear =
+            date.getUTCMonth() >= 7
+              ? date.getUTCFullYear() + 1
+              : date.getUTCFullYear();
+
+          if (!seasonalData[seasonYear]) {
+            seasonalData[seasonYear] = {
+              dates: [],
+              depths: [],
+              swes: [],
+              temps: [],
+            };
+          }
+
+          // Normalize date for plotting on a common seasonal axis.
+          // A season runs from Aug 1 to Jul 31. We can represent this
+          // by mapping dates to a common year range, e.g., 2000-2001.
+          const plotYear = date.getUTCMonth() >= 7 ? 2000 : 2001;
+          const normalizedDate = `${plotYear}-${(date.getUTCMonth() + 1)
+            .toString()
+            .padStart(
+              2,
+              '0',
+            )}-${date.getUTCDate().toString().padStart(2, '0')}`;
+
+          seasonalData[seasonYear].dates.push(normalizedDate);
+          seasonalData[seasonYear].depths.push(item.depth ?? 0);
+          seasonalData[seasonYear].swes.push(item.snow_water_equivalent ?? 0);
+          seasonalData[seasonYear].temps.push(item.temperature ?? 0);
+        }
+
+        // Sort and clean up each season's data
+        for (const year in seasonalData) {
+          const season = seasonalData[year];
+          // The data was pushed in descending order from the API, so reverse to get ascending.
+          season.dates.reverse();
+          season.depths.reverse();
+          season.swes.reverse();
+          season.temps.reverse();
+
+          // Clean up data dropouts using a forward-fill approach.
+          for (let i = 1; i < season.depths.length; i++) {
+            if (season.depths[i] === 0 && season.depths[i - 1] > 0) {
+              season.depths[i] = season.depths[i - 1];
+              season.swes[i] = season.swes[i - 1];
+            }
           }
         }
 
-        setData(formattedData);
+        setData(seasonalData);
       } catch (err) {
         console.error(err);
         setError('Failed to fetch snow data');
