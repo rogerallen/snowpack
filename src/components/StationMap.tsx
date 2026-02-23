@@ -94,6 +94,7 @@ const StationMap = ({ selectedStation, setSelectedStation }: StationMapProps) =>
                 <button
                   onClick={() => {
                     setSelectedStation(station.id);
+                    setTemporaryStation(null);
                   }}
                   className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
                 >
@@ -104,7 +105,7 @@ const StationMap = ({ selectedStation, setSelectedStation }: StationMapProps) =>
           </Popup>
         </Marker>
       ))}
-      <RecenterAutomatically station={selectedStationDetails} />
+      <RecenterAutomatically station={temporaryStation} />
     </MapContainer>
   );
 };
