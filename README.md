@@ -118,8 +118,14 @@ curl https://powderlines.kellysoftware.org/api/stations | jq '[.[] | {id: .tripl
 ---
 
 ## 📁 Project Structure
-
 - `/client`: React frontend source and configuration.
 - `/server`: Express backend, database logic, and API tests.
 - `/public`: Static assets and Leaflet marker icons.
 - `CREATION.md`: A detailed development log and roadmap of the project.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
