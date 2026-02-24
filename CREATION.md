@@ -214,7 +214,7 @@ Here is my senior developer's assessment of the next logical steps to move this 
 
 - [TODO] Multi-Station Comparison: The current architecture supports one station at a time. Refactoring the selectedStation state to an array (selectedStations) would allow users to
   overlay data from "Mt. Hood Test Site" against "Timberline," which is a high-value feature for snow enthusiasts.
-- Deep Linking (URL State): Sync the selectedStation and hoveredSeason to the URL query parameters. This allows users to share a specific view (e.g., ?station=651&season=2023)
+- [TODO] Deep Linking (URL State): Sync the selectedStation and hoveredSeason to the URL query parameters. This allows users to share a specific view (e.g., ?station=651&season=2023)
   with others.
 - [TODO] Responsive "Station Details" Panel: The map popups are compact, but we lack a place to show detailed station metadata (elevation, county, installation date). A collapsible
   side panel or "Drawer" would be a better home for this than a tiny Leaflet popup.
@@ -223,10 +223,9 @@ Here is my senior developer's assessment of the next logical steps to move this 
 
 - [TODO] Integration Testing (Playwright/Cypress): We have unit and API tests, but we lack "Happy Path" tests. A single E2E test that "Clicks a station -> Verifies chart loads ->
   Hovers a line" would provide immense confidence for future refactors.
-- CSS Variable Consolidation: Move the custom Leaflet overrides from index.css into the @theme block or use Tailwind data- attributes to manage the "compact" state more
+- [TODO] CSS Variable Consolidation: Move the custom Leaflet overrides from index.css into the @theme block or use Tailwind data- attributes to manage the "compact" state more
   idiomatically.
-- Prettier & Linting Enforcement: Now that the architecture is stable, it's time to enforce the style guide mentioned in "Later" (Prettier + ESLint) to ensure code consistency
-  as the project grows.
+- [DONE] Prettier & Linting Enforcement: Added `npm run format` and updated `npm run lint` to enforce the project's style guide and ensure consistency across the codebase.
 
 5. Repository Structure
 

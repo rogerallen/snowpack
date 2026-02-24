@@ -30,60 +30,66 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
   // Memoize the expensive part of trace generation
   const traceData = useMemo(
     () =>
-      seasons.map((season) => {
-        const seasonData = data[season];
-        if (!seasonData) return null;
+      seasons
+        .map((season) => {
+          const seasonData = data[season];
+          if (!seasonData) return null;
 
-        const hoverTexts = (seasonData.originalDates || []).map((originalDate, i) => {
-          const date = new Date(originalDate);
-          const dateString = date.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-            timeZone: 'UTC',
-          });
-          return `${dateString} ${seasonData.depths[i]} inches`;
-        });
+          const hoverTexts = (seasonData.originalDates || []).map(
+            (originalDate, i) => {
+              const date = new Date(originalDate);
+              const dateString = date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                timeZone: 'UTC',
+              });
+              return `${dateString} ${seasonData.depths[i]} inches`;
+            },
+          );
 
-        return {
-          x: seasonData.dates,
-          y: seasonData.depths,
-          type: 'scatter',
-          mode: 'lines',
-          name: season,
-          text: hoverTexts,
-          hovertemplate: '%{text}<extra></extra>',
-        };
-      }).filter(Boolean),
+          return {
+            x: seasonData.dates,
+            y: seasonData.depths,
+            type: 'scatter',
+            mode: 'lines',
+            name: season,
+            text: hoverTexts,
+            hovertemplate: '%{text}<extra></extra>',
+          };
+        })
+        .filter(Boolean),
     [data, seasons],
   );
 
   const traces = useMemo(
     () =>
-      (traceData || []).map((trace) => {
-        if (!trace) return null;
-        const isLatest = trace.name === latestSeason;
-        const isHovered = trace.name === hoveredSeason;
+      (traceData || [])
+        .map((trace) => {
+          if (!trace) return null;
+          const isLatest = trace.name === latestSeason;
+          const isHovered = trace.name === hoveredSeason;
 
-        let color = isLatest ? '#1f77b4' : '#aec7e8';
-        let width = isLatest ? 2.5 : 1.5;
-        let opacity = isLatest ? 1 : 0.7;
+          let color = isLatest ? '#1f77b4' : '#aec7e8';
+          let width = isLatest ? 2.5 : 1.5;
+          let opacity = isLatest ? 1 : 0.7;
 
-        if (isHovered && !isLatest) {
-          color = 'black';
-          width = 2.5;
-          opacity = 1;
-        }
+          if (isHovered && !isLatest) {
+            color = 'black';
+            width = 2.5;
+            opacity = 1;
+          }
 
-        return {
-          ...trace,
-          line: {
-            color,
-            width,
-          },
-          opacity,
-        };
-      }).filter(Boolean),
+          return {
+            ...trace,
+            line: {
+              color,
+              width,
+            },
+            opacity,
+          };
+        })
+        .filter(Boolean),
     [traceData, latestSeason, hoveredSeason],
   );
 
@@ -103,14 +109,18 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
       {loading && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm transition-opacity">
           <Loader2 className="w-10 h-10 text-oregon-blue animate-spin mb-3" />
-          <p className="text-sm font-medium text-gray-600">Loading seasonal data...</p>
+          <p className="text-sm font-medium text-gray-600">
+            Loading seasonal data...
+          </p>
         </div>
       )}
 
       {error ? (
         <div className="flex h-full flex-col items-center justify-center p-6 text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900">Unable to load chart</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Unable to load chart
+          </h3>
           <p className="mt-1 text-sm text-gray-500">{error}</p>
         </div>
       ) : (

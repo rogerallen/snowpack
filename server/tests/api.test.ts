@@ -16,9 +16,9 @@ describe('API Endpoints', () => {
         Date: '2023-01-01',
         'Snow Depth (in)': 10,
         'Snow Water Equivalent (in)': 2.5,
-        'Observed Air Temperature (degrees farenheit)': 32
-      }
-    ]
+        'Observed Air Temperature (degrees farenheit)': 32,
+      },
+    ],
   };
 
   describe('GET /api/snow', () => {
@@ -41,10 +41,10 @@ describe('API Endpoints', () => {
 
     it('should handle upstream API errors', async () => {
       vi.mocked(axios.get).mockRejectedValue(new Error('API Down'));
-      
+
       const station = 'NON_EXISTENT_STATION_' + Date.now();
       const response = await request(app).get(`/api/snow?station=${station}`);
-      
+
       expect(response.status).toBe(500);
       expect(response.body.error).toBe('Failed to fetch snow data');
     });
@@ -54,10 +54,10 @@ describe('API Endpoints', () => {
       vi.mocked(axios.get).mockResolvedValue({ data: mockStationData });
       const station = 'CACHE_HIT_TEST';
       await request(app).get(`/api/snow?station=${station}`);
-      
+
       // Clear mocks to ensure no further API calls
       vi.mocked(axios.get).mockClear();
-      
+
       // Second call should be a cache hit
       const response = await request(app).get(`/api/snow?station=${station}`);
       expect(response.status).toBe(200);

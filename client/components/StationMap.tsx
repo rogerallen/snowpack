@@ -96,10 +96,16 @@ const StationMap = ({
               },
             }}
           >
-            <Popup closeButton={false} autoPan={false} className="compact-popup">
+            <Popup
+              closeButton={false}
+              autoPan={false}
+              className="compact-popup"
+            >
               <div className="flex flex-col p-0 m-0 leading-tight">
                 <div className="font-bold text-sm m-0 p-0">{station.name}</div>
-                <div className="text-xs text-gray-600 m-0 p-0">State: {station.state}</div>
+                <div className="text-xs text-gray-600 m-0 p-0">
+                  State: {station.state}
+                </div>
                 <div className="text-[10px] text-blue-500 italic mt-1 p-0">
                   Click to select
                 </div>

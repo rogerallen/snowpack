@@ -8,7 +8,7 @@ function App() {
   const [selectedStation, setSelectedStation] = useState('651:OR:SNTL');
 
   const getStationName = (stationId: string) => {
-    const station = stations.find(s => s.id === stationId);
+    const station = stations.find((s) => s.id === stationId);
     return station ? station.name : 'Unknown Station';
   };
 
@@ -24,7 +24,9 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-5xl mx-auto px-4 py-8">
-        <h2 className="text-xl font-bold text-gray-900">{getStationName(selectedStation)} Data:</h2>
+        <h2 className="text-xl font-bold text-gray-900">
+          {getStationName(selectedStation)} Data:
+        </h2>
         <div className="grid grid-cols-1 gap-6">
           <SnowpackChart selectedStation={selectedStation} />
 

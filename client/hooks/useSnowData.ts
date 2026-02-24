@@ -15,7 +15,10 @@ export interface SeasonTraceData {
 
 export type SeasonalPlotlyData = Record<string, SeasonTraceData>;
 
-const fetchSnowData = async (stationId: string, days: number): Promise<SeasonalPlotlyData> => {
+const fetchSnowData = async (
+  stationId: string,
+  days: number,
+): Promise<SeasonalPlotlyData> => {
   if (!stationId) return {};
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
   const url = `${apiBaseUrl}/api/snow?station=${stationId}&days=${days}`;
@@ -37,6 +40,7 @@ export const useSnowData = (stationId: string, days = 365) => {
   return {
     data,
     loading,
-    error: error instanceof Error ? error.message : error ? String(error) : null,
+    error:
+      error instanceof Error ? error.message : error ? String(error) : null,
   };
 };

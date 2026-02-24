@@ -67,7 +67,7 @@ function transformToSeasonalData(data: RawSnowDataPoint[]): SeasonalPlotlyData {
   // We should process it so that the charts render correctly (usually ascending).
   // However, for grouping, order doesn't strictly matter as long as we sort later or reverse.
   // The previous implementation reversed it.
-  
+
   const processedData = [...data].reverse();
 
   processedData.forEach((point) => {
@@ -95,7 +95,9 @@ function transformToSeasonalData(data: RawSnowDataPoint[]): SeasonalPlotlyData {
     seasons[seasonLabel].originalDates.push(point.Date);
     seasons[seasonLabel].depths.push(point['Snow Depth (in)'] ?? 0);
     seasons[seasonLabel].swes.push(point['Snow Water Equivalent (in)'] ?? 0);
-    seasons[seasonLabel].temps.push(point['Observed Air Temperature (degrees farenheit)'] ?? 0);
+    seasons[seasonLabel].temps.push(
+      point['Observed Air Temperature (degrees farenheit)'] ?? 0,
+    );
   });
 
   return seasons;
@@ -116,7 +118,8 @@ export const getSnowData = async (
 
     if (cached) {
       const lastUpdated = new Date(cached.last_updated + 'Z'); // Ensure UTC
-      const ageHours = (now.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60);
+      const ageHours =
+        (now.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60);
 
       if (ageHours < CACHE_EXPIRATION_HOURS) {
         logger.info({ stationId, ageHours }, 'Cache HIT');
@@ -158,7 +161,10 @@ export const getSnowData = async (
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error({ error: errorMessage, stationId }, 'Error fetching snow data');
+    logger.error(
+      { error: errorMessage, stationId },
+      'Error fetching snow data',
+    );
 
     // If API fails, try to return stale cache data as a fallback
     const rows = await query<CacheEntry>(
