@@ -14,8 +14,13 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
     setRevision((r) => r + 1);
   }, [hoveredSeason, data]);
 
+  // Reset hover state when changing stations to avoid stale hover references
+  useEffect(() => {
+    setHoveredSeason(null);
+  }, [selectedStation]);
+
   const seasons = useMemo(
-    () => Object.keys(data).sort((a, b) => Number(b) - Number(a)), // Sort descending
+    () => Object.keys(data || {}).sort((a, b) => Number(b) - Number(a)), // Sort descending
     [data],
   );
   const latestSeason = seasons[0];
@@ -25,8 +30,9 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
     () =>
       seasons.map((season) => {
         const seasonData = data[season];
+        if (!seasonData) return null;
 
-        const hoverTexts = seasonData.originalDates.map((originalDate, i) => {
+        const hoverTexts = (seasonData.originalDates || []).map((originalDate, i) => {
           const date = new Date(originalDate);
           const dateString = date.toLocaleDateString('en-US', {
             month: 'short',
@@ -46,13 +52,14 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
           text: hoverTexts,
           hovertemplate: '%{text}<extra></extra>',
         };
-      }),
+      }).filter(Boolean),
     [data, seasons],
   );
 
   const traces = useMemo(
     () =>
-      traceData.map((trace) => {
+      (traceData || []).map((trace) => {
+        if (!trace) return null;
         const isLatest = trace.name === latestSeason;
         const isHovered = trace.name === hoveredSeason;
 
@@ -74,7 +81,7 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
           },
           opacity,
         };
-      }),
+      }).filter(Boolean),
     [traceData, latestSeason, hoveredSeason],
   );
 

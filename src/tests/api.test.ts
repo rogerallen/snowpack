@@ -31,7 +31,8 @@ describe('API Endpoints', () => {
       const response = await request(app).get('/api/snow');
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('data');
-      expect(response.body.data[0].depth).toBe(10);
+      // The mock data 2023-01-01 is in season 2023
+      expect(response.body.data['2023'].depths[0]).toBe(10);
     });
 
     it('should return snow data for a specific station', async () => {
@@ -51,6 +52,24 @@ describe('API Endpoints', () => {
       
       expect(response.status).toBe(502);
       expect(response.body.message).toBe('Error fetching data from upstream API.');
+    });
+
+    it('should return seasonal data from cache on HIT', async () => {
+      // First call to populate cache
+      vi.mocked(axios.get).mockResolvedValue({ data: mockStationData });
+      const station = 'CACHE_HIT_TEST';
+      await request(app).get(`/api/snow?station=${station}`);
+      
+      // Clear mocks to ensure no further API calls
+      vi.mocked(axios.get).mockClear();
+      
+      // Second call should be a cache hit
+      const response = await request(app).get(`/api/snow?station=${station}`);
+      expect(response.status).toBe(200);
+      expect(response.body.fromCache).toBe(true);
+      expect(response.body.data).toHaveProperty('2023');
+      expect(response.body.data['2023'].depths[0]).toBe(10);
+      expect(vi.mocked(axios.get)).not.toHaveBeenCalled();
     });
   });
 });

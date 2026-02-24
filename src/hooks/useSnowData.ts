@@ -1,6 +1,19 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { transformToSeasonalData, type SeasonalPlotlyData } from '../lib/seasonUtils';
+
+/**
+ * Data structured for Plotly traces, grouped by season.
+ * This structure is now received directly from the server.
+ */
+export interface SeasonTraceData {
+  dates: string[];
+  originalDates: string[];
+  depths: number[];
+  swes: number[];
+  temps: number[];
+}
+
+export type SeasonalPlotlyData = Record<string, SeasonTraceData>;
 
 export const useSnowData = (stationId: string, days = 365) => {
   const [data, setData] = useState<SeasonalPlotlyData>({});
@@ -18,9 +31,8 @@ export const useSnowData = (stationId: string, days = 365) => {
         const url = `${apiBaseUrl}/api/snow?station=${stationId}&days=${days}`;
 
         const response = await axios.get(url);
-        const seasonalData = transformToSeasonalData(response.data.data);
-
-        setData(seasonalData);
+        // The server now returns data already grouped by season.
+        setData(response.data.data);
       } catch (err) {
         console.error(err);
         setError('Failed to fetch snow data');
@@ -33,4 +45,3 @@ export const useSnowData = (stationId: string, days = 365) => {
 
   return { data, loading, error };
 };
-

@@ -29,7 +29,7 @@ router.get('/snow', async (req, res) => {
     logger.info(
       { 
         station, 
-        count: responsePayload.data.length, 
+        seasons: Object.keys(responsePayload.data).length, 
         cache: responsePayload.fromCache ? (responsePayload.stale ? 'STALE' : 'HIT') : 'MISS' 
       }, 
       'API Response sent'
@@ -37,7 +37,9 @@ router.get('/snow', async (req, res) => {
 
     return res.status(200).json({
       station_information: responsePayload.station_information,
-      data: responsePayload.data
+      data: responsePayload.data,
+      fromCache: responsePayload.fromCache,
+      stale: responsePayload.stale
     });
   } catch (error) {
     logger.error({ station, error: error.message }, 'Error in /api/snow route');
