@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
-import app from '../../server/index.ts';
+import app from '../index.ts';
 import axios from 'axios';
 
 vi.mock('axios');

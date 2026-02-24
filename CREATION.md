@@ -207,21 +207,21 @@ Here is my senior developer's assessment of the next logical steps to move this 
 2. Performance & Bundle Optimization (Frontend)
 
 - [DONE] Plotly Code Splitting: Reduced main bundle size by 90% (from 5.4MB to 541KB) by switching to `plotly.js-basic-dist` and implementing React.lazy code-splitting for the chart component.
-- Worker-based Parsing: If the seasonal data grows (e.g., fetching 80 years instead of 40), the JSON parsing can block the main thread. Moving the useMemo transformation logic
+- [TODO] Worker-based Parsing: If the seasonal data grows (e.g., fetching 80 years instead of 40), the JSON parsing can block the main thread. Moving the useMemo transformation logic
   in SnowpackChart.tsx to a Web Worker would keep the UI buttery smooth.
 
 3. Feature & UX Enhancements
 
-- Multi-Station Comparison: The current architecture supports one station at a time. Refactoring the selectedStation state to an array (selectedStations) would allow users to
+- [TODO] Multi-Station Comparison: The current architecture supports one station at a time. Refactoring the selectedStation state to an array (selectedStations) would allow users to
   overlay data from "Mt. Hood Test Site" against "Timberline," which is a high-value feature for snow enthusiasts.
 - Deep Linking (URL State): Sync the selectedStation and hoveredSeason to the URL query parameters. This allows users to share a specific view (e.g., ?station=651&season=2023)
   with others.
-- Responsive "Station Details" Panel: The map popups are compact, but we lack a place to show detailed station metadata (elevation, county, installation date). A collapsible
+- [TODO] Responsive "Station Details" Panel: The map popups are compact, but we lack a place to show detailed station metadata (elevation, county, installation date). A collapsible
   side panel or "Drawer" would be a better home for this than a tiny Leaflet popup.
 
 4. Quality & Developer Experience
 
-- Integration Testing (Playwright/Cypress): We have unit and API tests, but we lack "Happy Path" tests. A single E2E test that "Clicks a station -> Verifies chart loads ->
+- [TODO] Integration Testing (Playwright/Cypress): We have unit and API tests, but we lack "Happy Path" tests. A single E2E test that "Clicks a station -> Verifies chart loads ->
   Hovers a line" would provide immense confidence for future refactors.
 - CSS Variable Consolidation: Move the custom Leaflet overrides from index.css into the @theme block or use Tailwind data- attributes to manage the "compact" state more
   idiomatically.
@@ -230,7 +230,7 @@ Here is my senior developer's assessment of the next logical steps to move this 
 
 5. Repository Structure
 
-- Move Server to `/server`: As noted in your CREATION.md, the hybrid root directory is becoming crowded. Moving the Express server, its tests, and its package.json into a
+- [DONE] Move Server to `/server`: As noted in your CREATION.md, the hybrid root directory is becoming crowded. Moving the Express server, its tests, and its package.json (shared) into a
   dedicated server/ directory is the final "clean" step for the repository's skeleton.
 
 Which of these areas would you like to dive into first for our next session?
