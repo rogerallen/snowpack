@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect, Suspense, lazy } from 'react';
 import type { PlotHoverEvent } from 'plotly.js-basic-dist';
 import { useSnowData } from '../hooks/useSnowData';
+import { useUrlState } from '../hooks/useUrlState';
 import { Loader2, AlertCircle } from 'lucide-react';
 
 // Lazy load the Plotly component to enable code-splitting
@@ -8,7 +9,7 @@ const Plot = lazy(() => import('./PlotlyBasic'));
 
 const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
   const { data, loading, error } = useSnowData(selectedStation, 365 * 40); // Fetch 40 years of data
-  const [hoveredSeason, setHoveredSeason] = useState<string | null>(null);
+  const [hoveredSeason, setHoveredSeason] = useUrlState('season', '');
   const [revision, setRevision] = useState(0);
 
   // This effect will increment the revision whenever the hover state or data changes.
@@ -18,8 +19,8 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
 
   // Reset hover state when changing stations to avoid stale hover references
   useEffect(() => {
-    setHoveredSeason(null);
-  }, [selectedStation]);
+    setHoveredSeason('');
+  }, [selectedStation, setHoveredSeason]);
 
   const seasons = useMemo(
     () => Object.keys(data || {}).sort((a, b) => Number(b) - Number(a)), // Sort descending
@@ -101,7 +102,7 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
   };
 
   const handleUnhover = () => {
-    setHoveredSeason(null);
+    setHoveredSeason('');
   };
 
   return (

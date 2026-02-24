@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { useUrlState } from './hooks/useUrlState';
 import SnowpackChart from './components/SnowpackChart';
 import StationMap from './components/StationMap';
 import { MountainSnow } from 'lucide-react';
 import stations from './data/snotel-stations.json';
 
 function App() {
-  const [selectedStation, setSelectedStation] = useState('651:OR:SNTL');
+  const [selectedStation, setSelectedStation] = useUrlState(
+    'station',
+    '651:OR:SNTL',
+  );
 
   const getStationName = (stationId: string) => {
     const station = stations.find((s) => s.id === stationId);

@@ -214,8 +214,7 @@ Here is my senior developer's assessment of the next logical steps to move this 
 
 - [TODO] Multi-Station Comparison: The current architecture supports one station at a time. Refactoring the selectedStation state to an array (selectedStations) would allow users to
   overlay data from "Mt. Hood Test Site" against "Timberline," which is a high-value feature for snow enthusiasts.
-- [TODO] Deep Linking (URL State): Sync the selectedStation and hoveredSeason to the URL query parameters. This allows users to share a specific view (e.g., ?station=651&season=2023)
-  with others.
+- [DONE] Deep Linking (URL State): Synchronized selected station and hovered season to URL query parameters using a custom `useUrlState` hook. This allows users to share specific views.
 - [TODO] Responsive "Station Details" Panel: The map popups are compact, but we lack a place to show detailed station metadata (elevation, county, installation date). A collapsible
   side panel or "Drawer" would be a better home for this than a tiny Leaflet popup.
 
