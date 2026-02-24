@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import stationsData from '../data/snotel-stations.json';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 // Leaflet's default icon doesn't work well with bundlers, so we need to fix the URL
 import L from 'leaflet';

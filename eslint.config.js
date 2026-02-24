@@ -8,7 +8,14 @@ export default [
     ignores: ['dist/**', 'coverage/**'],
   },
   { files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'] },
-  { languageOptions: { globals: globals.browser } },
+  {
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+  },
   ...tseslint.configs.recommended,
   {
     plugins: {
