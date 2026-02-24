@@ -28,12 +28,13 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS station_metadata (
     station_id TEXT PRIMARY KEY,
     last_fetch_timestamp INTEGER NOT NULL,
+    min_requested_date TEXT,
     information TEXT
   )
 `);
 
 export const getStationMetadataStmt = db.prepare(
-  'SELECT last_fetch_timestamp, information FROM station_metadata WHERE station_id = ?',
+  'SELECT last_fetch_timestamp, min_requested_date, information FROM station_metadata WHERE station_id = ?',
 );
 export const getSnowDataStmt = db.prepare(
   'SELECT date, depth, snow_water_equivalent, change_in_depth, change_in_swe, temperature FROM snow_data WHERE station_id = ? AND date >= ? ORDER BY date DESC',
@@ -49,9 +50,10 @@ export const upsertSnowDataStmt = db.prepare(`
     temperature=excluded.temperature
 `);
 export const upsertMetadataStmt = db.prepare(`
-  INSERT INTO station_metadata (station_id, last_fetch_timestamp, information) VALUES (?, ?, ?)
+  INSERT INTO station_metadata (station_id, last_fetch_timestamp, min_requested_date, information) VALUES (?, ?, ?, ?)
   ON CONFLICT(station_id) DO UPDATE SET
     last_fetch_timestamp=excluded.last_fetch_timestamp,
+    min_requested_date=excluded.min_requested_date,
     information=excluded.information
 `);
 

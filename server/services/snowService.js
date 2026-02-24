@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { format, subDays } from 'date-fns';
+import { format, subDays, differenceInDays, parseISO, isValid } from 'date-fns';
 import logger from '../lib/logger.js';
 import db, {
   getStationMetadataStmt,
@@ -24,41 +24,59 @@ const UPSTREAM_API_URL =
  * Falls back to cache if upstream API fails.
  */
 export const getSnowData = async (station, days) => {
-  const startDate = subDays(new Date(), days);
+  const now = new Date();
+  const startDate = subDays(now, days);
   const startDateString = format(startDate, 'yyyy-MM-dd');
 
-  // Check current cache status
+  // 1. Check current cache status
   const metadata = getStationMetadataStmt.get(station);
   let cachedData = getSnowDataStmt.all(station, startDateString);
 
+  // We need to fetch if:
+  // a) The cache is stale (older than STALE_SECONDS)
+  // b) We are missing older history that we haven't tried to fetch before
+  
   const isCacheStale =
     !metadata ||
-    Date.now() - metadata.last_fetch_timestamp >
+    now.getTime() - metadata.last_fetch_timestamp >
       SERVER_CACHE_STALE_SECONDS * 1000;
 
-  let isCacheInsufficient = false;
-  if (!isCacheStale) {
-    // If we have significantly fewer records than days requested, cache is insufficient.
-    // (Allowing a 10% margin for days with no data from the source)
-    if (cachedData.length < days * 0.9) {
-      isCacheInsufficient = true;
-    }
-  }
+  // Check if we need more history. 
+  // We only fetch history if the requested startDate is earlier than what we've previously requested.
+  const isMissingHistory = !metadata || !metadata.min_requested_date || startDateString < metadata.min_requested_date;
 
-  if (isCacheStale || isCacheInsufficient) {
-    if (isCacheStale) {
-      logger.info({ station }, 'Cache STALE');
+  if (isCacheStale || isMissingHistory) {
+    let daysToFetch = days;
+    let fetchingFullHistory = true;
+
+    // Optimization: If we already have some history and just need an update (not new history),
+    // only fetch the days since the last cached record.
+    if (!isMissingHistory && cachedData.length > 0) {
+      const latestDateInCache = parseISO(cachedData[0].date);
+      if (isValid(latestDateInCache)) {
+        // Fetch the gap + 2 days overlap for safety
+        daysToFetch = Math.max(1, differenceInDays(now, latestDateInCache) + 2);
+        fetchingFullHistory = false;
+        logger.info(
+          { station, daysToFetch, latestInCache: cachedData[0].date },
+          'Optimizing fetch: only requesting recent missing days'
+        );
+      }
     }
-    if (isCacheInsufficient) {
+
+    if (isCacheStale && fetchingFullHistory) {
+      logger.info({ station }, 'Cache STALE: Requesting full history');
+    }
+    if (isMissingHistory) {
       logger.info(
-        { station, found: cachedData.length, need: days },
-        'Cache INSUFFICIENT'
+        { station, requestedStart: startDateString, prevMin: metadata?.min_requested_date },
+        'Missing history: Requesting full range'
       );
     }
 
     try {
       // 2. Fetch from external API
-      const externalApiUrl = `${UPSTREAM_API_URL}/${station}?days=${days}`;
+      const externalApiUrl = `${UPSTREAM_API_URL}/${station}?days=${daysToFetch}`;
       logger.info({ url: externalApiUrl }, 'Fetching from external API');
       const apiResponse = await axios.get(externalApiUrl);
       const stationInfo = apiResponse.data.station_information;
@@ -92,14 +110,21 @@ export const getSnowData = async (station, days) => {
             record.temperature,
           );
         }
+        
+        // Update metadata with the new fetch timestamp and the minimum date we've successfully requested.
+        const newMinRequestedDate = metadata?.min_requested_date 
+          ? (startDateString < metadata.min_requested_date ? startDateString : metadata.min_requested_date)
+          : startDateString;
+
         upsertMetadataStmt.run(
           station,
-          Date.now(),
+          now.getTime(),
+          newMinRequestedDate,
           JSON.stringify(stationInfo),
         );
         db.exec('COMMIT');
         logger.info(
-          { station, count: freshData.length },
+          { station, count: freshData.length, minDate: newMinRequestedDate },
           'Cache UPDATED'
         );
       } catch (e) {
@@ -107,9 +132,11 @@ export const getSnowData = async (station, days) => {
         throw e;
       }
 
+      // Re-fetch from DB to ensure we return the full requested range to the user
+      cachedData = getSnowDataStmt.all(station, startDateString);
       return {
         station_information: stationInfo,
-        data: freshData,
+        data: cachedData,
         fromCache: false
       };
     } catch (error) {
