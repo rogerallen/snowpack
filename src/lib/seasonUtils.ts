@@ -92,14 +92,6 @@ export const transformToSeasonalData = (serverData: SnowDataPoint[]): SeasonalPl
     season.depths.reverse();
     season.swes.reverse();
     season.temps.reverse();
-
-    // Clean up data dropouts using a forward-fill approach.
-    for (let i = 1; i < season.depths.length; i++) {
-      if (season.depths[i] === 0 && season.depths[i - 1] > 0) {
-        season.depths[i] = season.depths[i - 1];
-        season.swes[i] = season.swes[i - 1];
-      }
-    }
   }
 
   return seasonalData;
