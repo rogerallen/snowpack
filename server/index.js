@@ -14,7 +14,8 @@ const port = process.env.PORT || 3001;
 
 // A more robust, persistent cache using SQLite.
 // Data is stored per-day for each station to ensure consistency.
-const db = new DatabaseSync('snow_cache.db');
+// We'll keep the database file in the project root for consistency.
+const db = new DatabaseSync(path.join(__dirname, '..', 'snow_cache.db'));
 db.exec(`
   CREATE TABLE IF NOT EXISTS snow_data (
     station_id TEXT NOT NULL,
@@ -237,12 +238,12 @@ app.get('/api/snow', async (req, res) => {
 
 // In production, serve the static files from the 'dist' folder
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'dist')));
+  app.use(express.static(path.join(__dirname, '..', 'dist')));
 
   // The "catchall" handler: for any request that doesn't match one above,
   // send back React's index.html file.
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'));
   });
 }
 
