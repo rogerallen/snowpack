@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
 import type { PlotHoverEvent } from 'plotly.js';
 import { useSnowData } from '../hooks/useSnowData';
+import { Loader2, AlertCircle } from 'lucide-react';
 
 const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
   const { data, loading, error } = useSnowData(selectedStation, 365 * 40); // Fetch 40 years of data
@@ -9,18 +10,17 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
   const [revision, setRevision] = useState(0);
 
   // This effect will increment the revision whenever the hover state or data changes.
-  // The `datarevision` property in the layout tells Plotly to do a full redraw
-  // when this value changes, ensuring our hover styles are applied.
   useEffect(() => {
     setRevision((r) => r + 1);
   }, [hoveredSeason, data]);
+
   const seasons = useMemo(
     () => Object.keys(data).sort((a, b) => Number(b) - Number(a)), // Sort descending
     [data],
   );
   const latestSeason = seasons[0];
 
-  // Memoize the expensive part of trace generation (data processing and hover text)
+  // Memoize the expensive part of trace generation
   const traceData = useMemo(
     () =>
       seasons.map((season) => {
@@ -43,16 +43,13 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
           type: 'scatter',
           mode: 'lines',
           name: season,
-          // Provide custom text for the hover template
           text: hoverTexts,
-          // Use the 'text' property for the hover and hide the default trace info
           hovertemplate: '%{text}<extra></extra>',
         };
       }),
     [data, seasons],
   );
 
-  // This memo only applies styling and is much faster. It runs on hover.
   const traces = useMemo(
     () =>
       traceData.map((trace) => {
@@ -84,7 +81,6 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
   const handleHover = (event: PlotHoverEvent) => {
     if (event.points.length > 0) {
       const point = event.points[0];
-      // The name of the trace is available in the fullData object
       setHoveredSeason((point.fullData as { name: string }).name);
     }
   };
@@ -93,41 +89,57 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
     setHoveredSeason(null);
   };
 
-  if (loading) {
-    return <div>Loading chart data...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
   return (
-    <Plot
-      data={traces}
-      onHover={handleHover}
-      onUnhover={handleUnhover}
-      layout={{
-        hoverlabel: {
-          bgcolor: '#aec7e8', // Light blue from the historical traces
-          font: { color: 'black' },
-          bordercolor: '#aec7e8',
-        },
-        datarevision: revision,
-        title: 'Seasonal Snow Depth',
-        xaxis: {
-          title: 'Date',
-          tickformat: '%b', // Format ticks as abbreviated month names (e.g., Aug, Sep)
-          // Set the range to be from Sep 1 to Aug 31
-          range: ['2000-09-01', '2001-08-31'],
-        },
-        yaxis: { title: 'Snow Depth (inches)' },
-        legend: {
-          traceorder: 'reversed',
-        },
-      }}
-      style={{ width: '100%', height: '500px' }}
-      useResizeHandler={true}
-    />
+    <div className="relative w-full h-[500px] bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      {loading && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm transition-opacity">
+          <Loader2 className="w-10 h-10 text-oregon-blue animate-spin mb-3" />
+          <p className="text-sm font-medium text-gray-600">Loading seasonal data...</p>
+        </div>
+      )}
+
+      {error ? (
+        <div className="flex h-full flex-col items-center justify-center p-6 text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900">Unable to load chart</h3>
+          <p className="mt-1 text-sm text-gray-500">{error}</p>
+        </div>
+      ) : (
+        <div className="w-full h-full">
+          {/* Only render Plot if we have some data, or if it's already rendered (to keep state) */}
+          {(seasons.length > 0 || !loading) && (
+            <Plot
+              data={traces}
+              onHover={handleHover}
+              onUnhover={handleUnhover}
+              layout={{
+                autosize: true,
+                margin: { t: 40, r: 30, l: 50, b: 40 },
+                hoverlabel: {
+                  bgcolor: '#aec7e8',
+                  font: { color: 'black' },
+                  bordercolor: '#aec7e8',
+                },
+                datarevision: revision,
+                title: 'Seasonal Snow Depth',
+                xaxis: {
+                  title: 'Date',
+                  tickformat: '%b',
+                  range: ['2000-09-01', '2001-08-31'],
+                },
+                yaxis: { title: 'Snow Depth (inches)' },
+                legend: {
+                  traceorder: 'reversed',
+                },
+              }}
+              style={{ width: '100%', height: '100%' }}
+              useResizeHandler={true}
+              config={{ responsive: true, displayModeBar: false }}
+            />
+          )}
+        </div>
+      )}
+    </div>
   );
 };
 
