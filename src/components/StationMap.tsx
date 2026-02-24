@@ -71,8 +71,6 @@ const StationMap = ({
     return null;
   };
 
-  const selectedStationDetails = stations.find((s) => s.id === selectedStation);
-
   return (
     <MapContainer
       center={center}
