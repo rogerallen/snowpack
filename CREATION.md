@@ -129,12 +129,12 @@ Based on my review of the codebase, here are several areas for improvement and r
 
 ### 3. Component & UI/UX Refactoring
 
-- **Bundle Size Optimization:** `plotly.js` is a very large dependency. Since `recharts` is already in your `package.json`, consider migrating the chart to Recharts for a significantly smaller bundle, or use a partial Plotly bundle that only includes the necessary chart types.
+- [TODO] **Bundle Size Optimization:** `plotly.js` is a very large dependency. Since `recharts` is already in your `package.json`, consider migrating the chart to Recharts for a significantly smaller bundle, or use a partial Plotly bundle that only includes the necessary chart types.
 - **Map Performance:** Rendering 6,000+ markers in Leaflet can cause significant lag. I recommend:
   - [DONE] Implementing **Marker Clustering** (e.g., `react-leaflet-markercluster`).
-  - Implementing a **search/autocomplete** feature for stations so users don't have to hunt for them on the map.
-- **Streamline Selection:** The current "Click marker -> Open popup -> Click button" flow is a bit slow. Consider a single-click selection or a more responsive side panel for station details.
-- **Asset Management:** Avoid using external URLs for Leaflet icons (e.g., `raw.githubusercontent.com`). These should be stored locally in the project to prevent breakage if the external source goes down.
+  - [???] Implementing a **search/autocomplete** feature for stations so users don't have to hunt for them on the map.
+- [???] **Streamline Selection:** The current "Click marker -> Open popup -> Click button" flow is a bit slow. Consider a single-click selection or a more responsive side panel for station details.
+- [DONE] **Asset Management:** Avoid using external URLs for Leaflet icons (e.g., `raw.githubusercontent.com`). These should be stored locally in the project to prevent breakage if the external source goes down.
 
 ### 4. Quality & Maintenance
 
