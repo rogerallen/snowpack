@@ -125,6 +125,15 @@ curl https://powderlines.kellysoftware.org/api/stations | jq '[.[] | {id: .tripl
 
 ---
 
+## 🎨 Attribution & Assets
+
+This project uses the following third-party assets:
+- **Map Icons:** Colored markers provided by [pointhi/leaflet-color-markers](https://github.com/pointhi/leaflet-color-markers) (MIT License).
+- **Shadow Icon:** Marker shadow provided by the [Leaflet](https://leafletjs.com/) library (BSD-2-Clause License).
+- **SNOTEL Data:** Station metadata and snow telemetry data sourced from the [NRCS SNOTEL network](https://www.nrcs.usda.gov/wps/portal/wcc/home/snowpack/snotel/) via the Powderlines API.
+
+---
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
