@@ -53,12 +53,22 @@ if (!snowDataColumns.some((col) => col.name === 'temperature')) {
 }
 
 // How long before the server considers its own cache stale and re-fetches from the upstream API.
-// The historical data does not change, so we can set this to a very long time.
-const SERVER_CACHE_STALE_SECONDS = 30 * 24 * 60 * 60; // 30 days
+// Defaults to 30 days if not set in environment.
+const SERVER_CACHE_STALE_SECONDS = parseInt(
+  process.env.SERVER_CACHE_STALE_SECONDS || '2592000',
+  10,
+);
 
 // How long the browser is allowed to cache the response from our API.
-// This is kept short to ensure clients get reasonably fresh data if the server re-fetches.
-const BROWSER_CACHE_DURATION_SECONDS = 10 * 60; // 10 minutes
+// Defaults to 10 minutes if not set in environment.
+const BROWSER_CACHE_DURATION_SECONDS = parseInt(
+  process.env.BROWSER_CACHE_DURATION_SECONDS || '600',
+  10,
+);
+
+const UPSTREAM_API_URL =
+  process.env.UPSTREAM_API_URL ||
+  'https://powderlines.kellysoftware.org/api/station';
 
 const getStationMetadataStmt = db.prepare(
   'SELECT last_fetch_timestamp, information FROM station_metadata WHERE station_id = ?',
@@ -122,7 +132,7 @@ app.get('/api/snow', async (req, res) => {
 
     try {
       // 2. Fetch from external API
-      const externalApiUrl = `https://powderlines.kellysoftware.org/api/station/${station}?days=${days}`;
+      const externalApiUrl = `${UPSTREAM_API_URL}/${station}?days=${days}`;
       console.log(`Fetching from external API: ${externalApiUrl}`);
       const apiResponse = await axios.get(externalApiUrl);
       const stationInfo = apiResponse.data.station_information;

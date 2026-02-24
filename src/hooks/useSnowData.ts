@@ -31,8 +31,7 @@ export const useSnowData = (stationId: string, days = 365) => {
       setError(null);
       try {
         // Use environment variables to point to the correct API endpoint.
-        // In development, it points to our Node server. In production, it's a relative path.
-        const apiBaseUrl = import.meta.env.DEV ? 'http://localhost:3001' : '';
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
         const url = `${apiBaseUrl}/api/snow?station=${stationId}&days=${days}`;
 
         const response = await axios.get(url);
