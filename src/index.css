@@ -11,3 +11,8 @@
 body {
   background-color: #f3f4f6; /* Light gray background */
 }
+
+/* Compact Leaflet Popups */
+.compact-popup .leaflet-popup-content {
+  margin: 4px 6px !important;
+}

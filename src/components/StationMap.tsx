@@ -52,10 +52,6 @@ const StationMap = ({
   selectedStation,
   setSelectedStation,
 }: StationMapProps) => {
-  const [temporaryStation, setTemporaryStation] = useState<Station | null>(
-    null,
-  );
-
   // Calculate the center of the map
   const center: [number, number] = [45.5231, -122.6765]; // Default to Portland, OR
 
@@ -69,6 +65,8 @@ const StationMap = ({
     }, [station]);
     return null;
   };
+
+  const selectedStationData = stations.find((s) => s.id === selectedStation);
 
   return (
     <MapContainer
@@ -88,31 +86,29 @@ const StationMap = ({
             icon={selectedStation === station.id ? selectedIcon : defaultIcon}
             eventHandlers={{
               click: () => {
-                setTemporaryStation(station);
+                setSelectedStation(station.id);
+              },
+              mouseover: (e) => {
+                e.target.openPopup();
+              },
+              mouseout: (e) => {
+                e.target.closePopup();
               },
             }}
           >
-            <Popup>
-              <div>
-                <h3>{station.name}</h3>
-                <p>State: {station.state}</p>
-                {temporaryStation && temporaryStation.id === station.id && (
-                  <button
-                    onClick={() => {
-                      setSelectedStation(station.id);
-                      setTemporaryStation(null);
-                    }}
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
-                  >
-                    Confirm Selection
-                  </button>
-                )}
+            <Popup closeButton={false} autoPan={false} className="compact-popup">
+              <div className="flex flex-col p-0 m-0 leading-tight">
+                <div className="font-bold text-sm m-0 p-0">{station.name}</div>
+                <div className="text-xs text-gray-600 m-0 p-0">State: {station.state}</div>
+                <div className="text-[10px] text-blue-500 italic mt-1 p-0">
+                  Click to select
+                </div>
               </div>
             </Popup>
           </Marker>
         ))}
       </MarkerClusterGroup>
-      <RecenterAutomatically station={temporaryStation} />
+      <RecenterAutomatically station={selectedStationData} />
     </MapContainer>
   );
 };
