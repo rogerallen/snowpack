@@ -1,5 +1,8 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import stationsData from '../data/snotel-stations.json';
 import { useEffect, useState } from 'react';
 
@@ -81,36 +84,38 @@ const StationMap = ({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-      {stations.map((station) => (
-        <Marker
-          key={station.id}
-          position={[station.lat, station.lon]}
-          icon={selectedStation === station.id ? selectedIcon : defaultIcon}
-          eventHandlers={{
-            click: () => {
-              setTemporaryStation(station);
-            },
-          }}
-        >
-          <Popup>
-            <div>
-              <h3>{station.name}</h3>
-              <p>State: {station.state}</p>
-              {temporaryStation && temporaryStation.id === station.id && (
-                <button
-                  onClick={() => {
-                    setSelectedStation(station.id);
-                    setTemporaryStation(null);
-                  }}
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
-                >
-                  Confirm Selection
-                </button>
-              )}
-            </div>
-          </Popup>
-        </Marker>
-      ))}
+      <MarkerClusterGroup chunkedLoading>
+        {stations.map((station) => (
+          <Marker
+            key={station.id}
+            position={[station.lat, station.lon]}
+            icon={selectedStation === station.id ? selectedIcon : defaultIcon}
+            eventHandlers={{
+              click: () => {
+                setTemporaryStation(station);
+              },
+            }}
+          >
+            <Popup>
+              <div>
+                <h3>{station.name}</h3>
+                <p>State: {station.state}</p>
+                {temporaryStation && temporaryStation.id === station.id && (
+                  <button
+                    onClick={() => {
+                      setSelectedStation(station.id);
+                      setTemporaryStation(null);
+                    }}
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
+                  >
+                    Confirm Selection
+                  </button>
+                )}
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+      </MarkerClusterGroup>
       <RecenterAutomatically station={temporaryStation} />
     </MapContainer>
   );
