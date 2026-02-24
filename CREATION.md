@@ -117,8 +117,8 @@ Based on my review of the codebase, here are several areas for improvement and r
   - `lib/db.js` for database connection and schema management.
   - `routes/` for API endpoint definitions.
   - `services/snowService.js` for the proxying and caching logic.
-- **Robust Migrations:** Instead of manual `PRAGMA table_info` checks within the application code, use a dedicated migration tool or a separate initialization script.
-- **Production Stability:** `node:sqlite` is currently experimental. For a production environment, consider switching to a more mature library like `better-sqlite3` or ensure the Node.js version is locked to one where this feature is stable.
+- [DISMISSED] **Robust Migrations:** Decided to keep it simple. Since the DB is a cache, we'll just delete and recreate it if the schema changes.
+- [NOPE] **Production Stability:** Decided to stay with `node:sqlite` for its zero-dependency nature and integration with Node.js 22+.
 - **Logging & Observability:** Replace `console.log` with a structured logger (e.g., `pino` or `winston`) to better track cache hits/misses and upstream API failures in production.
 
 ### 2. Frontend Data Management & Logic

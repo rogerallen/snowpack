@@ -31,19 +31,6 @@ db.exec(`
   )
 `);
 
-// Simple migration: Add the 'information' column if it doesn't exist.
-const columns = db.prepare('PRAGMA table_info(station_metadata)').all();
-if (!columns.some((col) => col.name === 'information')) {
-  console.log('[DB Migration] Adding "information" column to station_metadata table.');
-  db.exec('ALTER TABLE station_metadata ADD COLUMN information TEXT');
-}
-// Simple migration: Add the 'temperature' column if it doesn't exist.
-const snowDataColumns = db.prepare('PRAGMA table_info(snow_data)').all();
-if (!snowDataColumns.some((col) => col.name === 'temperature')) {
-  console.log('[DB Migration] Adding "temperature" column to snow_data table.');
-  db.exec('ALTER TABLE snow_data ADD COLUMN temperature REAL');
-}
-
 export const getStationMetadataStmt = db.prepare(
   'SELECT last_fetch_timestamp, information FROM station_metadata WHERE station_id = ?',
 );
