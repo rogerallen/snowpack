@@ -125,7 +125,7 @@ Based on my review of the codebase, here are several areas for improvement and r
 
 - [DONE] **Consolidate Season Logic:** There is a discrepancy between `src/lib/seasonUtils.ts` (starts season in August) and `src/hooks/useSnowData.ts` (starts in September). Furthermore, `seasonUtils.ts` has broken imports. This logic should be unified and move to a shared utility.
 - [DONE] **Offload Heavy Processing:** Moved the complex seasonal data transformation from the React frontend to the Node.js backend. The client now receives data ready for plotting, reducing CPU load and frontend complexity.
-- **Modern Data Fetching:** Replace the manual `useEffect` + `axios` implementation in `useSnowData` with `@tanstack/react-query`. This would provide built-in caching, better loading/error states, and easier management of stale data.
+- [DONE] **Modern Data Fetching:** Replace the manual `useEffect` + `axios` implementation in `useSnowData` with `@tanstack/react-query`. This would provide built-in caching, better loading/error states, and easier management of stale data.
 
 ### 3. Component & UI/UX Refactoring
 

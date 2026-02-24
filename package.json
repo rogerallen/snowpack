@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.0",
+    "@tanstack/react-query": "^5.90.21",
+    "@tanstack/react-query-devtools": "^5.91.3",
     "axios": "^1.13.5",
     "cors": "^2.8.6",
     "date-fns": "^4.1.0",

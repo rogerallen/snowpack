@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
 /**
@@ -15,33 +15,28 @@ export interface SeasonTraceData {
 
 export type SeasonalPlotlyData = Record<string, SeasonTraceData>;
 
+const fetchSnowData = async (stationId: string, days: number): Promise<SeasonalPlotlyData> => {
+  if (!stationId) return {};
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+  const url = `${apiBaseUrl}/api/snow?station=${stationId}&days=${days}`;
+  const response = await axios.get(url);
+  return response.data.data;
+};
+
 export const useSnowData = (stationId: string, days = 365) => {
-  const [data, setData] = useState<SeasonalPlotlyData>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data = {},
+    isLoading: loading,
+    error,
+  } = useQuery({
+    queryKey: ['snow-data', stationId, days],
+    queryFn: () => fetchSnowData(stationId, days),
+    enabled: !!stationId,
+  });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!stationId) return;
-      setLoading(true);
-      setError(null);
-      try {
-        // Use environment variables to point to the correct API endpoint.
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
-        const url = `${apiBaseUrl}/api/snow?station=${stationId}&days=${days}`;
-
-        const response = await axios.get(url);
-        // The server now returns data already grouped by season.
-        setData(response.data.data);
-      } catch (err) {
-        console.error(err);
-        setError('Failed to fetch snow data');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [stationId, days]);
-
-  return { data, loading, error };
+  return {
+    data,
+    loading,
+    error: error instanceof Error ? error.message : error ? String(error) : null,
+  };
 };
