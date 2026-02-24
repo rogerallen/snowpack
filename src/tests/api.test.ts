@@ -26,7 +26,7 @@ describe('API Endpoints', () => {
 
   describe('GET /api/snow', () => {
     it('should return snow data for the default station', async () => {
-      (axios.get as any).mockResolvedValue({ data: mockStationData });
+      vi.mocked(axios.get).mockResolvedValue({ data: mockStationData });
 
       const response = await request(app).get('/api/snow');
       expect(response.status).toBe(200);
@@ -36,7 +36,7 @@ describe('API Endpoints', () => {
 
     it('should return snow data for a specific station', async () => {
       const station = '701:OR:SNTL';
-      (axios.get as any).mockResolvedValue({ data: mockStationData });
+      vi.mocked(axios.get).mockResolvedValue({ data: mockStationData });
 
       const response = await request(app).get(`/api/snow?station=${station}`);
       expect(response.status).toBe(200);
@@ -44,7 +44,7 @@ describe('API Endpoints', () => {
     });
 
     it('should handle upstream API errors', async () => {
-      (axios.get as any).mockRejectedValue(new Error('API Down'));
+      vi.mocked(axios.get).mockRejectedValue(new Error('API Down'));
       
       const station = 'NON_EXISTENT_STATION_' + Date.now();
       const response = await request(app).get(`/api/snow?station=${station}`);
