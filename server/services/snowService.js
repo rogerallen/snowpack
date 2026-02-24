@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { format, subDays } from 'date-fns';
+import logger from '../lib/logger.js';
 import db, {
   getStationMetadataStmt,
   getSnowDataStmt,
@@ -45,16 +46,20 @@ export const getSnowData = async (station, days) => {
   }
 
   if (isCacheStale || isCacheInsufficient) {
-    if (isCacheStale) console.log(`[Cache STALE] for station: ${station}`);
-    if (isCacheInsufficient)
-      console.log(
-        `[Cache INSUFFICIENT] for station: ${station}. Found ${cachedData.length}, need ~${days}`,
+    if (isCacheStale) {
+      logger.info({ station }, 'Cache STALE');
+    }
+    if (isCacheInsufficient) {
+      logger.info(
+        { station, found: cachedData.length, need: days },
+        'Cache INSUFFICIENT'
       );
+    }
 
     try {
       // 2. Fetch from external API
       const externalApiUrl = `${UPSTREAM_API_URL}/${station}?days=${days}`;
-      console.log(`Fetching from external API: ${externalApiUrl}`);
+      logger.info({ url: externalApiUrl }, 'Fetching from external API');
       const apiResponse = await axios.get(externalApiUrl);
       const stationInfo = apiResponse.data.station_information;
       const rawApiData = apiResponse.data.data;
@@ -93,8 +98,9 @@ export const getSnowData = async (station, days) => {
           JSON.stringify(stationInfo),
         );
         db.exec('COMMIT');
-        console.log(
-          `[Cache UPDATED] for station: ${station} with ${freshData.length} records.`,
+        logger.info(
+          { station, count: freshData.length },
+          'Cache UPDATED'
         );
       } catch (e) {
         db.exec('ROLLBACK');
@@ -107,14 +113,15 @@ export const getSnowData = async (station, days) => {
         fromCache: false
       };
     } catch (error) {
-      console.error(
-        'Error fetching from external API or updating cache:',
-        error.message,
+      logger.error(
+        { station, error: error.message },
+        'Error fetching from external API or updating cache'
       );
       // If fetch fails, try to serve from cache anyway if we have something
       if (cachedData.length > 0) {
-        console.log(
-          `[API Fetch FAILED] Serving stale/partial data for station: ${station}`,
+        logger.info(
+          { station },
+          'API Fetch FAILED: Serving stale/partial data'
         );
         const stationInfo = metadata?.information
           ? JSON.parse(metadata.information)
@@ -131,7 +138,7 @@ export const getSnowData = async (station, days) => {
   }
 
   // 4. Serve from cache (HIT)
-  console.log(`[Cache HIT] for station: ${station}, days: ${days}`);
+  logger.info({ station, days }, 'Cache HIT');
   const stationInfo = metadata.information
     ? JSON.parse(metadata.information)
     : null;

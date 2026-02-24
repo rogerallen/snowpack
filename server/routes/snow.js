@@ -1,5 +1,6 @@
 import express from 'express';
 import { getSnowData } from '../services/snowService.js';
+import logger from '../lib/logger.js';
 
 const router = express.Router();
 
@@ -25,9 +26,13 @@ router.get('/snow', async (req, res) => {
       `public, max-age=${BROWSER_CACHE_DURATION_SECONDS}`,
     );
 
-    console.log(
-      `[API ${responsePayload.fromCache ? (responsePayload.stale ? 'STALE' : 'CACHE HIT') : 'CACHE MISS'}] Sending ${responsePayload.data.length} records. First record:`,
-      responsePayload.data[0] ?? 'N/A',
+    logger.info(
+      { 
+        station, 
+        count: responsePayload.data.length, 
+        cache: responsePayload.fromCache ? (responsePayload.stale ? 'STALE' : 'HIT') : 'MISS' 
+      }, 
+      'API Response sent'
     );
 
     return res.status(200).json({
@@ -35,7 +40,7 @@ router.get('/snow', async (req, res) => {
       data: responsePayload.data
     });
   } catch (error) {
-    console.error('Error in /api/snow route:', error.message);
+    logger.error({ station, error: error.message }, 'Error in /api/snow route');
     return res
       .status(502)
       .json({ message: 'Error fetching data from upstream API.' });

@@ -119,7 +119,7 @@ Based on my review of the codebase, here are several areas for improvement and r
   - `services/snowService.js` for the proxying and caching logic.
 - [DISMISSED] **Robust Migrations:** Decided to keep it simple. Since the DB is a cache, we'll just delete and recreate it if the schema changes.
 - [NOPE] **Production Stability:** Decided to stay with `node:sqlite` for its zero-dependency nature and integration with Node.js 22+.
-- **Logging & Observability:** Replace `console.log` with a structured logger (e.g., `pino` or `winston`) to better track cache hits/misses and upstream API failures in production.
+- [DONE] **Logging & Observability:** Replaced `console.log` with `pino` for structured JSON logging and `pino-pretty` for development.
 
 ### 2. Frontend Data Management & Logic
 
