@@ -1,8 +1,10 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import Plot from 'react-plotly.js';
-import type { PlotHoverEvent } from 'plotly.js';
+import React, { useMemo, useState, useEffect, Suspense, lazy } from 'react';
+import type { PlotHoverEvent } from 'plotly.js-basic-dist';
 import { useSnowData } from '../hooks/useSnowData';
 import { Loader2, AlertCircle } from 'lucide-react';
+
+// Lazy load the Plotly component to enable code-splitting
+const Plot = lazy(() => import('./PlotlyBasic'));
 
 const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
   const { data, loading, error } = useSnowData(selectedStation, 365 * 40); // Fetch 40 years of data
@@ -115,34 +117,43 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
         <div className="w-full h-full">
           {/* Only render Plot if we have some data, or if it's already rendered (to keep state) */}
           {(seasons.length > 0 || !loading) && (
-            <Plot
-              data={traces}
-              onHover={handleHover}
-              onUnhover={handleUnhover}
-              layout={{
-                autosize: true,
-                margin: { t: 40, r: 30, l: 50, b: 40 },
-                hoverlabel: {
-                  bgcolor: '#aec7e8',
-                  font: { color: 'black' },
-                  bordercolor: '#aec7e8',
-                },
-                datarevision: revision,
-                title: 'Seasonal Snow Depth',
-                xaxis: {
-                  title: 'Date',
-                  tickformat: '%b',
-                  range: ['2000-09-01', '2001-08-31'],
-                },
-                yaxis: { title: 'Snow Depth (inches)' },
-                legend: {
-                  traceorder: 'reversed',
-                },
-              }}
-              style={{ width: '100%', height: '100%' }}
-              useResizeHandler={true}
-              config={{ responsive: true, displayModeBar: false }}
-            />
+            <Suspense
+              fallback={
+                <div className="flex h-full items-center justify-center">
+                  <Loader2 className="w-8 h-8 text-oregon-blue animate-spin mr-2" />
+                  <span className="text-gray-500">Initializing chart...</span>
+                </div>
+              }
+            >
+              <Plot
+                data={traces}
+                onHover={handleHover}
+                onUnhover={handleUnhover}
+                layout={{
+                  autosize: true,
+                  margin: { t: 40, r: 30, l: 50, b: 40 },
+                  hoverlabel: {
+                    bgcolor: '#aec7e8',
+                    font: { color: 'black' },
+                    bordercolor: '#aec7e8',
+                  },
+                  datarevision: revision,
+                  title: 'Seasonal Snow Depth',
+                  xaxis: {
+                    title: 'Date',
+                    tickformat: '%b',
+                    range: ['2000-09-01', '2001-08-31'],
+                  },
+                  yaxis: { title: 'Snow Depth (inches)' },
+                  legend: {
+                    traceorder: 'reversed',
+                  },
+                }}
+                style={{ width: '100%', height: '100%' }}
+                useResizeHandler={true}
+                config={{ responsive: true, displayModeBar: false }}
+              />
+            </Suspense>
           )}
         </div>
       )}
