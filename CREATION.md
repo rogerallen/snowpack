@@ -138,9 +138,9 @@ Based on my review of the codebase, here are several areas for improvement and r
 
 ### 4. Quality & Maintenance
 
-- **Testing Strategy:** The project currently lacks tests. At a minimum, I recommend:
-  - **Unit Tests:** For the season calculation and data transformation logic.
-  - **API Tests:** To verify the caching behavior and error handling of the Express server.
+- [DONE] **Testing Strategy:** The project currently lacks tests. At a minimum, I recommend:
+  - [DONE] **Unit Tests:** For the season calculation and data transformation logic.
+  - [DONE] **API Tests:** To verify the caching behavior and error handling of the Express server.
 - [DONE] **Environment Configuration:** Centralize all constants (API URLs, cache durations, port numbers) into a `.env` file.
 - [DONE] **Clean Up:** Remove unused dependencies (like `recharts` if you stick with Plotly) to keep the `package.json` lean.
 

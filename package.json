@@ -10,7 +10,10 @@
     "build": "vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "start": "NODE_ENV=production node --env-file=.env server/index.js"
+    "start": "NODE_ENV=production node --env-file=.env server/index.js",
+    "test": "node --env-file=.env.test ./node_modules/.bin/vitest run",
+    "test:watch": "node --env-file=.env.test ./node_modules/.bin/vitest",
+    "test:coverage": "node --env-file=.env.test ./node_modules/.bin/vitest run --coverage"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.0",
@@ -34,6 +37,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/react-plotly.js": "^2.6.4",
     "@vitejs/plugin-react": "^5.1.1",
+    "@vitest/coverage-v8": "^4.0.18",
     "concurrently": "^9.2.1",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
@@ -43,10 +47,12 @@
     "globals": "^16.5.0",
     "nodemon": "^3.1.14",
     "prettier": "^3.8.1",
+    "supertest": "^7.2.2",
     "tailwindcss": "^4.2.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.48.0",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vitest": "^4.0.18"
   },
   "overrides": {
     "minimatch": "^10.2.1"

@@ -15,7 +15,8 @@ const port = process.env.PORT || 3001;
 // A more robust, persistent cache using SQLite.
 // Data is stored per-day for each station to ensure consistency.
 // We'll keep the database file in the project root for consistency.
-const db = new DatabaseSync(path.join(__dirname, '..', 'snow_cache.db'));
+const dbPath = process.env.DB_PATH || 'snow_cache.db';
+const db = new DatabaseSync(path.join(__dirname, '..', dbPath));
 db.exec(`
   CREATE TABLE IF NOT EXISTS snow_data (
     station_id TEXT NOT NULL,
@@ -257,6 +258,10 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-app.listen(port, () => {
-  console.log(`Server listening on http://localhost:${port}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => {
+    console.log(`Server listening on http://localhost:${port}`);
+  });
+}
+
+export default app;

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 // The clean shape sent from our server API
-interface ServerDataPoint {
+export interface SnowDataPoint {
   date: string;
   depth: number | null;
   snow_water_equivalent: number | null;
@@ -35,7 +35,7 @@ export const useSnowData = (stationId: string, days = 365) => {
         const url = `${apiBaseUrl}/api/snow?station=${stationId}&days=${days}`;
 
         const response = await axios.get(url);
-        const serverData: ServerDataPoint[] = response.data.data;
+        const serverData: SnowDataPoint[] = response.data.data;
 
         // Group data by "snow year" (Sep 1 - Aug 31)
         const seasonalData: SeasonalPlotlyData = {};
