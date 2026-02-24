@@ -96,6 +96,27 @@ The client will be available at `http://localhost:5173` and the API at `http://l
 
 ---
 
+## 📊 Data Sourcing & Transformation
+
+The station metadata used by the map (`client/data/snotel-stations.json`) is derived from the [Powderlines Stations API](https://powderlines.kellysoftware.org/api/stations).
+
+### Transformation Logic
+The raw API data is transformed using the following mapping:
+- `id`: Mapped from `triplet` (e.g., `301:CA:SNTL`).
+- `name`: Preserved from `name`.
+- `lat`: Mapped from `location.lat`.
+- `lon`: Mapped from `location.lng`.
+- `state`: Extracted from the `triplet` (the middle segment).
+
+### Reproducing the Data
+You can regenerate the station data using `curl` and `jq`:
+
+```bash
+curl https://powderlines.kellysoftware.org/api/stations | jq '[.[] | {id: .triplet, name: .name, lat: .location.lat, lon: .location.lng, state: (.triplet | split(":")[1])}]' > client/data/snotel-stations.json
+```
+
+---
+
 ## 📁 Project Structure
 
 - `/client`: React frontend source and configuration.
