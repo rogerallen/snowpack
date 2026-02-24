@@ -23,6 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 
+# environment files should not be checked in
+.env
+.env.test
+
 # our cache
 snow_cache.db
 snow_cache_test.db
