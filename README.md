@@ -101,7 +101,9 @@ The client will be available at `http://localhost:5173` and the API at `http://l
 The station metadata used by the map (`client/data/snotel-stations.json`) is derived from the [Powderlines Stations API](https://powderlines.kellysoftware.org/api/stations).
 
 ### Transformation Logic
+
 The raw API data is transformed using the following mapping:
+
 - `id`: Mapped from `triplet` (e.g., `301:CA:SNTL`).
 - `name`: Preserved from `name`.
 - `lat`: Mapped from `location.lat`.
@@ -109,6 +111,7 @@ The raw API data is transformed using the following mapping:
 - `state`: Extracted from the `triplet` (the middle segment).
 
 ### Reproducing the Data
+
 You can regenerate the station data using `curl` and `jq`:
 
 ```bash
@@ -118,6 +121,7 @@ curl https://powderlines.kellysoftware.org/api/stations | jq '[.[] | {id: .tripl
 ---
 
 ## 📁 Project Structure
+
 - `/client`: React frontend source and configuration.
 - `/server`: Express backend, database logic, and API tests.
 - `/public`: Static assets and Leaflet marker icons.
@@ -128,6 +132,7 @@ curl https://powderlines.kellysoftware.org/api/stations | jq '[.[] | {id: .tripl
 ## 🎨 Attribution & Assets
 
 This project uses the following third-party assets:
+
 - **Map Icons:** Colored markers provided by [pointhi/leaflet-color-markers](https://github.com/pointhi/leaflet-color-markers) (MIT License).
 - **Shadow Icon:** Marker shadow provided by the [Leaflet](https://leafletjs.com/) library (BSD-2-Clause License).
 - **SNOTEL Data:** Station metadata and snow telemetry data sourced from the [NRCS SNOTEL network](https://www.nrcs.usda.gov/wps/portal/wcc/home/snowpack/snotel/) via the Powderlines API.
@@ -137,4 +142,3 @@ This project uses the following third-party assets:
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
