@@ -255,7 +255,8 @@ It should be clear from the server log when the client asks for new data, when t
 
 I would also like to bring out control of displayed years from plotly into the html I control.
 
-I would like to remove the current plotly legend and add vertical double (min year, max year) slider with a full range of years (year-40 to year) as the max, but valid data selected as the current range (say, last 15 years if that is all that was returned) shown with the double-slider min/max. The user should be able to move the sliders, but they should have UI constraints to not go out of the valid range of data and not overlap min > max.
+I would like to remove the current plotly legend and add vertical double (min year, max year) slider with a full range of years (year-40 to year) as the max, but valid data selected as the current range (say, last 15 years if that is all that was returned) shown with the double-slider min/max. The user should be able to move the slider1
+s, but they should have UI constraints to not go out of the valid range of data and not overlap min > max.
 
 Any data outside the range of the sliders should drop.
 
@@ -263,8 +264,10 @@ Add toggles for "Display yearly" and "Display average"
 
 ### Color scheme
 
-The colors shown currently (light blue, dark blue) will be changing. What I would like is to use the Perceptually Uniform Sequential viridis color scale from python's matplotlib for the seasons.
+The colors shown currently (light blue, dark blue) will be changing. What I would like is to use the Perceptually Uniform Sequential viridis color scale from python's matplotlib for the seasons. The range should be set for the full range of years in the current mountain data. It shouldn't change based on min/max year.
 
 ## DB Fixes
 
 We should be vigiliant about handling missing data as missing and not coercing it to values like 0 degrees or 0 inches.
+
+We also should be aware that sometimes we have temp data, but not snow depth. the gui should note this.
