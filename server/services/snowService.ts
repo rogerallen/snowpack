@@ -147,7 +147,7 @@ function calculateAverages(
  * Fetches recent data from Powderlines and upserts to DB using a transaction.
  */
 async function updateRecentData(stationId: string): Promise<void> {
-  const apiUrl = `https://powderlines.kellysoftware.org/api/station/${stationId}?days=365`;
+  const apiUrl = `${DATA_CONFIG.UPSTREAM_API_URL}/${stationId}?days=365`;
   logger.info({ apiUrl }, 'Fetching recent data from Powderlines');
 
   const response = await axios.get(apiUrl);

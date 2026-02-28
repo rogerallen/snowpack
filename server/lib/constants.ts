@@ -4,6 +4,9 @@ export const DATA_CONFIG = {
     Number(process.env.ZERO_DETECTION_THRESHOLD_DAYS) || 14,
   ZERO_PROTECTION_START: process.env.ZERO_PROTECTION_START || '10-01', // Oct 1st
   ZERO_PROTECTION_END: process.env.ZERO_PROTECTION_END || '05-31', // May 31st
+  UPSTREAM_API_URL:
+    process.env.UPSTREAM_API_URL ||
+    'https://powderlines.kellysoftware.org/api/station',
   AGGREGATION_METHOD: 'mean',
   DB_VERSION: 4,
   MIN_SNOTEL_YEAR: 1980,

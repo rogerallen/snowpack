@@ -235,13 +235,16 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
               if (match) {
                 const start = parseInt(match[1]);
                 const end = parseInt(match[2]);
-                isVisible = start >= debouncedMinYear && end <= debouncedMaxYear;
+                isVisible =
+                  start >= debouncedMinYear && end <= debouncedMaxYear;
               }
             }
           } else {
             const year = Number(trace.name);
             isVisible =
-              showYearly && year >= debouncedMinYear && year <= debouncedMaxYear;
+              showYearly &&
+              year >= debouncedMinYear &&
+              year <= debouncedMaxYear;
           }
 
           let color = '#aec7e8'; // Fallback
@@ -546,6 +549,7 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
                       }`,
                       xaxis: {
                         title: 'Date',
+                        type: 'date',
                         tickformat: '%b',
                         range: ['2000-09-01', '2001-08-31'],
                       },

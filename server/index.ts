@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import snowRouter from './routes/snow.ts';
 import logger from './lib/logger.ts';
@@ -8,6 +9,18 @@ import { initDb } from './lib/db.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Graceful environment loading
+const envPath = path.join(__dirname, '..', '.env');
+const envTestPath = path.join(__dirname, '..', '.env.test');
+
+if (process.env.NODE_ENV === 'test' && fs.existsSync(envTestPath)) {
+  // @ts-expect-error: loadEnvFile is a new Node.js 20+ feature
+  process.loadEnvFile(envTestPath);
+} else if (fs.existsSync(envPath)) {
+  // @ts-expect-error: loadEnvFile is a new Node.js 20+ feature
+  process.loadEnvFile(envPath);
+}
 
 const app = express();
 const port = process.env.PORT || 3001;

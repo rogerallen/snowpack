@@ -31,7 +31,10 @@ export async function fetchHistoricalData(stationId: string): Promise<string> {
 
   // Check if we already have this file locally
   if (fs.existsSync(filePath)) {
-    logger.info({ stationId, filePath }, 'Found local raw CSV, skipping NRCS fetch');
+    logger.info(
+      { stationId, filePath },
+      'Found local raw CSV, skipping NRCS fetch',
+    );
     return fs.readFileSync(filePath, 'utf-8');
   }
 

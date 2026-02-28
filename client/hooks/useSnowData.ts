@@ -46,8 +46,8 @@ const fetchSnowData = async (
       stale: false,
     };
   }
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
-  const url = `${apiBaseUrl}/api/snow?station=${stationId}&days=${days}`;
+  // Use relative path; Vite proxy handles this in dev, and Express handles it in prod
+  const url = `/api/snow?station=${stationId}&days=${days}`;
   const response = await axios.get(url);
   return response.data;
 };
