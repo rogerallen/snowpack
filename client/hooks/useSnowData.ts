@@ -26,9 +26,11 @@ const fetchSnowData = async (
   return response.data.data;
 };
 
+const EMPTY_DATA: SeasonalPlotlyData = {};
+
 export const useSnowData = (stationId: string, days = 365) => {
   const {
-    data = {},
+    data = EMPTY_DATA,
     isLoading: loading,
     error,
   } = useQuery({

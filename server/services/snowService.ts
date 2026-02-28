@@ -93,14 +93,115 @@ function transformToSeasonalData(data: RawSnowDataPoint[]): SeasonalPlotlyData {
 
     seasons[seasonLabel].dates.push(normalizeDateToSeason(point.Date));
     seasons[seasonLabel].originalDates.push(point.Date);
-    seasons[seasonLabel].depths.push(point['Snow Depth (in)'] ?? 0);
-    seasons[seasonLabel].swes.push(point['Snow Water Equivalent (in)'] ?? 0);
-    seasons[seasonLabel].temps.push(
-      point['Observed Air Temperature (degrees farenheit)'] ?? 0,
+
+    // Strictly cast to Number to prevent string concatenation during averaging.
+    const depth = Number(point['Snow Depth (in)']);
+    const swe = Number(point['Snow Water Equivalent (in)']);
+    const airTemp = Number(
+      point['Observed Air Temperature (degrees farenheit)'],
     );
+
+    // Also handle common SNOTEL error values (like -99.9) by treating them as 0.
+    seasons[seasonLabel].depths.push(isNaN(depth) || depth < 0 ? 0 : depth);
+    seasons[seasonLabel].swes.push(isNaN(swe) || swe < 0 ? 0 : swe);
+    seasons[seasonLabel].temps.push(airTemp);
   });
 
   return seasons;
+}
+
+/**
+ * Calculates 5-year averages for snow depth and SWE.
+ * Groups years into buckets like 1985-1990, 1990-1995, etc.
+ */
+function calculateAverages(
+  seasonalData: SeasonalPlotlyData,
+): SeasonalPlotlyData {
+  const years = Object.keys(seasonalData)
+    .map(Number)
+    .filter((y) => !isNaN(y))
+    .sort((a, b) => a - b);
+  if (years.length === 0) return {};
+
+  logger.info({ yearCount: years.length }, 'Calculating 5-year averages');
+
+  const buckets: Record<string, number[]> = {};
+  years.forEach((year) => {
+    // Group into 1-inclusive buckets: 2001-2005, 2006-2010, etc.
+    const startYear = Math.floor((year - 1) / 5) * 5 + 1;
+    const endYear = startYear + 4;
+    const label = `${startYear}-${endYear} Average`;
+    if (!buckets[label]) buckets[label] = [];
+    buckets[label].push(year);
+  });
+
+  const averages: SeasonalPlotlyData = {};
+
+  Object.entries(buckets).forEach(([label, bucketYears]) => {
+    // Only create averages for buckets with more than 1 year of data
+    if (bucketYears.length <= 1) return;
+
+    // Map of normalizedDate -> { sumDepths, sumSwes, sumTemps, count }
+    const dailyAggregates: Record<
+      string,
+      { depths: number; swes: number; temps: number; count: number }
+    > = {};
+
+    bucketYears.forEach((year) => {
+      const data = seasonalData[year.toString()];
+      if (!data || !data.dates) return;
+
+      data.dates.forEach((date, i) => {
+        if (!dailyAggregates[date]) {
+          dailyAggregates[date] = { depths: 0, swes: 0, temps: 0, count: 0 };
+        }
+        dailyAggregates[date].depths += data.depths[i] || 0;
+        dailyAggregates[date].swes += data.swes[i] || 0;
+        dailyAggregates[date].temps += data.temps[i] || 0;
+        dailyAggregates[date].count += 1;
+      });
+    });
+
+    const sortedDates = Object.keys(dailyAggregates).sort();
+    if (sortedDates.length === 0) return;
+
+    const avgData: SeasonTraceData = {
+      dates: [],
+      originalDates: [],
+      depths: [],
+      swes: [],
+      temps: [],
+    };
+
+    let hasNonZeroData = false;
+
+    sortedDates.forEach((date) => {
+      const agg = dailyAggregates[date];
+      const avgDepth = Math.round((agg.depths / agg.count) * 10) / 10;
+      const avgSwe = Math.round((agg.swes / agg.count) * 10) / 10;
+      const avgTemp = Math.round((agg.temps / agg.count) * 10) / 10;
+
+      if (avgDepth > 0 || avgSwe > 0) {
+        hasNonZeroData = true;
+      }
+
+      avgData.dates.push(date);
+      avgData.originalDates.push(date);
+      avgData.depths.push(avgDepth);
+      avgData.swes.push(avgSwe);
+      avgData.temps.push(avgTemp);
+    });
+
+    if (hasNonZeroData) {
+      averages[label] = avgData;
+    }
+  });
+
+  logger.info(
+    { averageBuckets: Object.keys(averages) },
+    'Calculated 5-year average buckets',
+  );
+  return averages;
 }
 
 export const getSnowData = async (
@@ -123,8 +224,10 @@ export const getSnowData = async (
 
       if (ageHours < CACHE_EXPIRATION_HOURS) {
         logger.info({ stationId, ageHours }, 'Cache HIT');
+        const data = JSON.parse(cached.data);
+
         return {
-          data: JSON.parse(cached.data),
+          data,
           fromCache: true,
           stale: false,
         };
@@ -148,14 +251,18 @@ export const getSnowData = async (
     // Transform raw data into seasonal Plotly format on the backend
     const seasonalData = transformToSeasonalData(rawData);
 
+    // Calculate averages and merge them
+    const averagedData = calculateAverages(seasonalData);
+    const finalData = { ...seasonalData, ...averagedData };
+
     // Update cache
     await run(
       'INSERT OR REPLACE INTO snow_cache (station_id, days, data, last_updated) VALUES (?, ?, ?, CURRENT_TIMESTAMP)',
-      [stationId, days, JSON.stringify(seasonalData)],
+      [stationId, days, JSON.stringify(finalData)],
     );
 
     return {
-      data: seasonalData,
+      data: finalData,
       fromCache: false,
       stale: false,
     };
