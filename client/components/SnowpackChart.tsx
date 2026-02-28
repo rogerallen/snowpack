@@ -32,8 +32,11 @@ const VIRIDIS_SCALE = [
  * Interpolates between Viridis hex colors based on a value from 0 to 1.
  */
 function getViridisColor(t: number): string {
+  if (isNaN(t)) return VIRIDIS_SCALE[0];
+  // Clamp t to [0, 1] to prevent out-of-bounds array access
+  const clampedT = Math.max(0, Math.min(1, t));
   const n = VIRIDIS_SCALE.length - 1;
-  const i = Math.min(Math.floor(t * n), n - 1);
+  const i = Math.min(Math.floor(clampedT * n), n - 1);
   const start = VIRIDIS_SCALE[i];
   const end = VIRIDIS_SCALE[i + 1];
 
@@ -55,7 +58,7 @@ function getViridisColor(t: number): string {
 }
 
 const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
-  const { data, loading, error } = useSnowData(selectedStation, 365 * 40); // Fetch 40 years of data
+  const { data, meta, loading, error } = useSnowData(selectedStation, 365 * 40); // Fetch POR via backend
   const [hoveredSeason, setHoveredSeason] = useUrlState('season', '');
   const [metric, setMetric] = useState<'depths' | 'swes' | 'temps'>('depths');
   const [isPending, startTransition] = useTransition();
@@ -70,21 +73,28 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
   const [committedMaxYear, setCommittedMaxYear] = useState<number>(0);
 
   const yearRange = useMemo(() => {
-    const keys = Object.keys(data || {});
-    const yearlyYears = keys
-      .filter((k) => !k.includes('Average'))
-      .map(Number)
-      .filter((n) => !isNaN(n))
-      .sort((a, b) => a - b);
+    const isSnow = metric === 'depths' || metric === 'swes';
+    const min = isSnow ? meta.minSnowYear : meta.minTempYear;
+    const max = isSnow ? meta.maxSnowYear : meta.maxTempYear;
 
-    if (yearlyYears.length === 0) return { min: 0, max: 0, fullMin: 0 };
+    if (!min || !max) {
+      // Fallback if meta is empty
+      const keys = Object.keys(data || {});
+      const yearlyYears = keys
+        .filter((k) => !k.includes('Average'))
+        .map(Number)
+        .filter((n) => !isNaN(n))
+        .sort((a, b) => a - b);
 
-    const max = yearlyYears[yearlyYears.length - 1];
-    const min = yearlyYears[0];
-    const fullMin = max - 40; // Full range is 40 years back from the most recent
+      if (yearlyYears.length === 0) return { min: 0, max: 0, fullMin: 0 };
 
-    return { min, max, fullMin };
-  }, [data]);
+      const fallbackMax = yearlyYears[yearlyYears.length - 1];
+      const fallbackMin = yearlyYears[0];
+      return { min: fallbackMin, max: fallbackMax, fullMin: 1980 };
+    }
+
+    return { min, max, fullMin: 1980 };
+  }, [data, meta, metric]);
 
   // Set initial year range once data loads or station changes
   useEffect(() => {
@@ -175,13 +185,17 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
             metric === 'depths'
               ? 'inches'
               : metric === 'swes'
-                ? 'in SWE'
+                ? 'inches'
                 : '°F';
 
           const hoverTexts = (seasonData.originalDates || []).map(
             (originalDate, i) => {
+              const val = values[i];
+              const formattedVal =
+                typeof val === 'number' ? Math.round(val * 10) / 10 : val;
+
               if (isAverage) {
-                return `${season}: ${values[i]} ${unit}`;
+                return `${season}: ${formattedVal} ${unit}`;
               }
               const date = new Date(originalDate);
               const dateString = date.toLocaleDateString('en-US', {
@@ -190,7 +204,7 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
                 year: 'numeric',
                 timeZone: 'UTC',
               });
-              return `${dateString} ${values[i]} ${unit}`;
+              return `${dateString} ${formattedVal} ${unit}`;
             },
           );
 

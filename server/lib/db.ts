@@ -2,6 +2,7 @@ import sqlite3 from 'sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import logger from './logger.ts';
+import { DATA_CONFIG } from './constants.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,63 +21,123 @@ const db = new sqlite3.Database(dbPath, (err) => {
   }
 });
 
-// Initialize the cache table
-db.serialize(() => {
-  // Create meta table to track DB version
-  db.run(`
-    CREATE TABLE IF NOT EXISTS db_meta (
-      key TEXT PRIMARY KEY,
-      value TEXT
-    )
-  `);
+/**
+ * Initializes the database schema.
+ */
+export async function initDb(): Promise<void> {
+  return new Promise((resolve) => {
+    db.serialize(() => {
+      // Create meta table
+      db.run(`
+        CREATE TABLE IF NOT EXISTS db_meta (
+          key TEXT PRIMARY KEY,
+          value TEXT
+        )
+      `);
 
-  // Check for version and upgrade if necessary
-  db.get(
-    "SELECT value FROM db_meta WHERE key = 'version'",
-    (err, row: { value: string } | undefined) => {
-      if (err) {
-        logger.error({ err }, 'Error checking database version');
-        return;
-      }
+      // Check version and upgrade if necessary
+      db.get(
+        "SELECT value FROM db_meta WHERE key = 'version'",
+        async (err, row: { value: string } | undefined) => {
+          const currentVersion = row ? parseInt(row.value) : 0;
 
-      const version = row ? parseInt(row.value) : 1;
-      if (version < 3) {
-        logger.info(
-          { oldVersion: version, newVersion: 3 },
-          'Old database version detected. Clearing cache for version 3 upgrade.',
-        );
+          if (currentVersion < DATA_CONFIG.DB_VERSION) {
+            logger.info(
+              {
+                oldVersion: currentVersion,
+                newVersion: DATA_CONFIG.DB_VERSION,
+              },
+              'Upgrading database schema...',
+            );
 
-        db.serialize(() => {
-          // Clear the cache for the breaking change (storing averages in DB)
-          db.run('DROP TABLE IF EXISTS snow_cache');
-          db.run(`
-            CREATE TABLE IF NOT EXISTS snow_cache (
-              station_id TEXT,
-              days INTEGER,
-              data TEXT,
-              last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
-              PRIMARY KEY (station_id, days)
-            )
-          `);
-          db.run(
-            "INSERT OR REPLACE INTO db_meta (key, value) VALUES ('version', '3')",
-          );
-        });
-      } else {
-        // Version is already correct, just ensure snow_cache exists
-        db.run(`
-          CREATE TABLE IF NOT EXISTS snow_cache (
-            station_id TEXT,
-            days INTEGER,
-            data TEXT,
-            last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (station_id, days)
-          )
-        `);
-      }
-    },
-  );
-});
+            // Version 4 is a breaking change (Structured data instead of JSON)
+            db.serialize(() => {
+              db.run('DROP TABLE IF EXISTS snow_cache');
+              db.run('DROP TABLE IF EXISTS snow_data');
+              db.run('DROP TABLE IF EXISTS stations');
+
+              // Create new tables
+              db.run(`
+                CREATE TABLE stations (
+                  station_id TEXT PRIMARY KEY,
+                  name TEXT,
+                  state TEXT,
+                  lat REAL,
+                  lon REAL,
+                  min_snow_year INTEGER,
+                  max_snow_year INTEGER,
+                  min_temp_year INTEGER,
+                  max_temp_year INTEGER,
+                  last_full_ingestion DATETIME
+                )
+              `);
+
+              db.run(`
+                CREATE TABLE snow_data (
+                  station_id TEXT,
+                  season INTEGER,
+                  period_id INTEGER,
+                  mean_depth REAL,
+                  mean_swe REAL,
+                  mean_temp REAL,
+                  PRIMARY KEY (station_id, season, period_id)
+                )
+              `);
+
+              // Update metadata
+              db.run(
+                "INSERT OR REPLACE INTO db_meta (key, value) VALUES ('version', ?)",
+                [DATA_CONFIG.DB_VERSION.toString()],
+              );
+              db.run(
+                "INSERT OR REPLACE INTO db_meta (key, value) VALUES ('sampling_interval', ?)",
+                [DATA_CONFIG.SAMPLING_INTERVAL_DAYS.toString()],
+              );
+              db.run(
+                "INSERT OR REPLACE INTO db_meta (key, value) VALUES ('zero_threshold', ?)",
+                [DATA_CONFIG.ZERO_DETECTION_THRESHOLD_DAYS.toString()],
+              );
+
+              logger.info('Database schema upgraded to Version 4');
+              resolve();
+            });
+          } else {
+            // Ensure tables exist even if version is correct
+            db.serialize(() => {
+              db.run(`
+                CREATE TABLE IF NOT EXISTS stations (
+                  station_id TEXT PRIMARY KEY,
+                  name TEXT,
+                  state TEXT,
+                  lat REAL,
+                  lon REAL,
+                  min_snow_year INTEGER,
+                  max_snow_year INTEGER,
+                  min_temp_year INTEGER,
+                  max_temp_year INTEGER,
+                  last_full_ingestion DATETIME
+                )
+              `);
+
+              db.run(`
+                CREATE TABLE IF NOT EXISTS snow_data (
+                  station_id TEXT,
+                  season INTEGER,
+                  period_id INTEGER,
+                  mean_depth REAL,
+                  mean_swe REAL,
+                  mean_temp REAL,
+                  PRIMARY KEY (station_id, season, period_id)
+                )
+              `);
+              resolve();
+            });
+          }
+        },
+      );
+    });
+  });
+}
 
 /**
  * Executes a SQL query and returns the results as a promise.

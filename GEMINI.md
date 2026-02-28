@@ -12,7 +12,10 @@ Snowpack Tracker is a full-stack dashboard for visualizing historical SNOTEL (Sn
 - **Data Fetching:** @tanstack/react-query (Caching: 5m stale, 30m GC).
 - **Visualization:** Plotly.js (Seasonal charts), React-Leaflet (Station map).
 - **Backend:** Node.js, Express, Pino (Logging).
-- **API:** Proxies and transforms NRCS SNOTEL SOAP/CSV data into seasonal JSON.
+- **API:** Hybrid model: Fetches historical POR from NRCS CSV and recent (365d) from Powderlines.
+- **Data Processing:** Downsamples daily data to 3-day intervals (122 samples per season starting Sept 1).
+- **Quality Logic:** 14-day zero-detection threshold (Oct-May) to flag sensor failures.
+- **Database:** SQLite v4 with structured `snow_data` and `stations` tables.
 
 ## Core Mandates
 

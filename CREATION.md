@@ -233,7 +233,7 @@ Here is my senior developer's assessment of the next logical steps to move this 
 
 Which of these areas would you like to dive into first for our next session?
 
-## Adding averages to the chart
+## Adding averages to the chart [DONE]
 
 The current tool graphs yearly seasons. I would like to add a calculated season that averages every day's value over 5 seasons (inclusive). I am re-stating the goal here as we have had some progress in the currently edited files, but the changes are not perfect and I want you to assess where the code should be adjusted vs where we should restart the change.
 
@@ -243,15 +243,15 @@ We should also display those values in the list of yearly seasons when we show a
 
 Average all of the values: depth, snow water equvalent and temperature.
 
-### db changes
+### db changes [DONE]
 
 We should calculate these values and store them in the DB prior to visualization. This is a breaking change for the data in the database. Let's call this a "version 2" database somehow. If we encounter a prior version (no version label) we should clear out the db and allow client fetches to refill the data. As the data is refilled we will add the averages. This should be clear from INFO messages in the log.
 
-### server log messages
+### server log messages [DONE]
 
 It should be clear from the server log when the client asks for new data, when that data hits or misses and when the data is being requested from the external api. How much data is returned (in years and days)
 
-## updating the display
+## updating the display [DONE]
 
 I would also like to bring out control of displayed years from plotly into the html I control.
 
@@ -262,12 +262,24 @@ Any data outside the range of the sliders should drop.
 
 Add toggles for "Display yearly" and "Display average"
 
-### Color scheme
+### Color scheme [DONE]
 
 The colors shown currently (light blue, dark blue) will be changing. What I would like is to use the Perceptually Uniform Sequential viridis color scale from python's matplotlib for the seasons. The range should be set for the full range of years in the current mountain data. It shouldn't change based on min/max year.
 
-## DB Fixes
+## DB Fixes [DONE]
+
+I think I want to consider a mix of data sources. I'm not seeing the expected data from the Powderlines for the oldest data. What do you think of this?
+
+For data older than 1 year ago, let's get the data files we download from the main government SNOTEL sites. I believe that is CSV which we will then need to parse. When we download that data, let's save the raw files for later use. Save it in a directory that we keep out of git so we can always recreate the DB with that data on startup if we need to.
+
+After loading the historical data, we put that data into our sqlite DB.
+
+When doing live display of the webpage and asking for recent data younger than 1 year, we should get from the Powderlines API and store that only in our sqlite DB. We don't want to ask for CSV files unless we are asking for historical data.
 
 We should be vigiliant about handling missing data as missing and not coercing it to values like 0 degrees or 0 inches.
 
-We also should be aware that sometimes we have temp data, but not snow depth. the gui should note this.
+We also should be aware that sometimes we have temp data, but not snow depth. the gui should note this when displaying min/max years of valid data. Data that is all 0s for an extended period should probably be considered "missing". The logic in this region may want to have directed tests to verify correct behavior.
+
+For interactivity, it is clear that 40 years of 365 days of data is way too much. I'm thinking weekly (52) data may be just a bit too coarse. How about bi-weekly (104 periods per year)? So, I would like to process any season's data stored in the DB down to 104 samples per year.
+
+Can you develop a plan, summarize it and report back? Please ask clarifying questions and do not make any changes at this time.

@@ -30,6 +30,7 @@ dist-ssr
 # our cache
 snow_cache.db
 snow_cache_test.db
+server/data/raw/
 
 # testing & coverage
 coverage/

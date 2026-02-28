@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import snowRouter from './routes/snow.ts';
 import logger from './lib/logger.ts';
+import { initDb } from './lib/db.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,21 +21,27 @@ app.use('/api', snowRouter);
 
 // In production, serve the static files from the 'dist' folder
 if (process.env.NODE_ENV === 'production') {
-  // server/index.ts -> server -> root/dist
   const distPath = path.join(__dirname, '..', 'dist');
   app.use(express.static(distPath));
-
-  // The "catchall" handler: for any request that doesn't match one above,
-  // send back React's index.html file.
   app.get('*', (req: Request, res: Response) => {
     res.sendFile(path.join(distPath, 'index.html'));
   });
 }
 
-if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => {
-    logger.info({ port }, 'Server listening');
+// Initialize Database
+initDb()
+  .then(() => {
+    if (process.env.NODE_ENV !== 'test') {
+      app.listen(port, () => {
+        logger.info({ port }, 'Server listening and database initialized');
+      });
+    }
+  })
+  .catch((err) => {
+    logger.error({ err }, 'Failed to initialize database');
+    if (process.env.NODE_ENV !== 'test') {
+      process.exit(1);
+    }
   });
-}
 
 export default app;
