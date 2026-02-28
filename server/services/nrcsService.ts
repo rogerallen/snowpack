@@ -21,15 +21,21 @@ export interface DailyData {
 }
 
 /**
- * Fetches historical POR data from NRCS and saves it locally.
+ * Fetches historical POR data from NRCS or returns locally cached CSV.
  */
 export async function fetchHistoricalData(stationId: string): Promise<string> {
-  const url = NRCS_CSV_URL_TEMPLATE.replace('${stationId}', stationId);
   const filePath = path.join(
     RAW_DATA_DIR,
     `${stationId.replace(/:/g, '_')}.csv`,
   );
 
+  // Check if we already have this file locally
+  if (fs.existsSync(filePath)) {
+    logger.info({ stationId, filePath }, 'Found local raw CSV, skipping NRCS fetch');
+    return fs.readFileSync(filePath, 'utf-8');
+  }
+
+  const url = NRCS_CSV_URL_TEMPLATE.replace('${stationId}', stationId);
   logger.info({ stationId, url }, 'Fetching historical CSV from NRCS');
 
   const response = await axios.get(url);
