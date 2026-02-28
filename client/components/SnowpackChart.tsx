@@ -14,6 +14,46 @@ import { Loader2, AlertCircle } from 'lucide-react';
 // Lazy load the Plotly component to enable code-splitting
 const Plot = lazy(() => import('./PlotlyBasic'));
 
+// Perceptually uniform Viridis color scale (Dark Purple to Yellow)
+const VIRIDIS_SCALE = [
+  '#440154',
+  '#482878',
+  '#3e4989',
+  '#31688e',
+  '#26828e',
+  '#1f9e89',
+  '#35b779',
+  '#6ece58',
+  '#b5de2b',
+  '#fde725',
+];
+
+/**
+ * Interpolates between Viridis hex colors based on a value from 0 to 1.
+ */
+function getViridisColor(t: number): string {
+  const n = VIRIDIS_SCALE.length - 1;
+  const i = Math.min(Math.floor(t * n), n - 1);
+  const start = VIRIDIS_SCALE[i];
+  const end = VIRIDIS_SCALE[i + 1];
+
+  // Simple linear interpolation for hex colors
+  const r1 = parseInt(start.slice(1, 3), 16);
+  const g1 = parseInt(start.slice(3, 5), 16);
+  const b1 = parseInt(start.slice(5, 7), 16);
+
+  const r2 = parseInt(end.slice(1, 3), 16);
+  const g2 = parseInt(end.slice(3, 5), 16);
+  const b2 = parseInt(end.slice(5, 7), 16);
+
+  const localT = (t * n) % 1;
+  const r = Math.round(r1 + (r2 - r1) * localT);
+  const g = Math.round(g1 + (g2 - g1) * localT);
+  const b = Math.round(b1 + (b2 - b1) * localT);
+
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
 const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
   const { data, loading, error } = useSnowData(selectedStation, 365 * 40); // Fetch 40 years of data
   const [hoveredSeason, setHoveredSeason] = useUrlState('season', '');
@@ -46,7 +86,7 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
     return { min, max, fullMin };
   }, [data]);
 
-  // Set initial year range once data loads
+  // Set initial year range once data loads or station changes
   useEffect(() => {
     if (yearRange.max > 0) {
       setMinYear(yearRange.min);
@@ -54,7 +94,7 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
       setCommittedMinYear(yearRange.min);
       setCommittedMaxYear(yearRange.max);
     }
-  }, [yearRange]);
+  }, [yearRange, selectedStation]);
 
   const handleMetricChange = (newMetric: 'depths' | 'swes' | 'temps') => {
     startTransition(() => {
@@ -179,22 +219,36 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
           const isHovered = trace.name === hoveredSeason;
           const isAverage = trace.name.includes('Average');
 
-          let color = isLatest ? '#1f77b4' : '#aec7e8';
-          let width = isLatest ? 2.5 : 1.5;
+          let color = '#aec7e8'; // Fallback
+          let width = isLatest ? 3.0 : 1.5;
           let opacity = isLatest ? 1 : 0.7;
 
           if (isAverage) {
-            color = '#003366'; // Darker blue
+            // Apply Viridis color for averages based on the last year of the bucket
+            const match = trace.name.match(/-(\d{4})/);
+            if (match && yearRange.max > yearRange.min) {
+              const lastYear = parseInt(match[1]);
+              const t =
+                (lastYear - yearRange.min) / (yearRange.max - yearRange.min);
+              color = getViridisColor(t);
+            } else {
+              color = '#003366'; // Fallback
+            }
             width = 3.0; // Heavier line
             opacity = 0.9;
+          } else {
+            // Apply Viridis color for yearly traces based on full temporal range
+            const year = Number(trace.name);
+            if (!isNaN(year) && yearRange.max > yearRange.min) {
+              const t =
+                (year - yearRange.min) / (yearRange.max - yearRange.min);
+              color = getViridisColor(t);
+            }
           }
 
-          if (isHovered && !isLatest && !isAverage) {
+          if (isHovered) {
             color = 'black';
-            width = 2.5;
-            opacity = 1;
-          } else if (isHovered && isAverage) {
-            width = 2.5; // Even heavier on hover
+            width = 3.5;
             opacity = 1;
           }
 
@@ -208,7 +262,7 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
           };
         })
         .filter(Boolean),
-    [traceData, latestSeason, hoveredSeason],
+    [traceData, latestSeason, hoveredSeason, yearRange],
   );
 
   const handleHover = (event: PlotHoverEvent) => {
