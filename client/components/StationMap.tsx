@@ -78,7 +78,11 @@ const StationMap = ({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-      <MarkerClusterGroup chunkedLoading>
+      <MarkerClusterGroup
+        chunkedLoading
+        maxClusterRadius={50} // Smaller radius = more clusters and more individual points
+        disableClusteringAtZoom={13} // Show individual markers at zoom 13 and above
+      >
         {stations.map((station) => (
           <Marker
             key={station.id}
