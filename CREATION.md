@@ -232,3 +232,39 @@ Here is my senior developer's assessment of the next logical steps to move this 
   dedicated server/ directory is the final "clean" step for the repository's skeleton.
 
 Which of these areas would you like to dive into first for our next session?
+
+## Adding averages to the chart
+
+The current tool graphs yearly seasons. I would like to add a calculated season that averages every day's value over 5 seasons (inclusive). I am re-stating the goal here as we have had some progress in the currently edited files, but the changes are not perfect and I want you to assess where the code should be adjusted vs where we should restart the change.
+
+Recall that the season is labelled by the year it ends in. Similarly, the 5-year seasons would be 1986-1990, 1991-1995, 1996-2000, etc. Note that any of the labels will add "Average" as in "1991-1995 Average".
+
+We should also display those values in the list of yearly seasons when we show a mountains values.
+
+Average all of the values: depth, snow water equvalent and temperature.
+
+### db changes
+
+We should calculate these values and store them in the DB prior to visualization. This is a breaking change for the data in the database. Let's call this a "version 2" database somehow. If we encounter a prior version (no version label) we should clear out the db and allow client fetches to refill the data. As the data is refilled we will add the averages. This should be clear from INFO messages in the log.
+
+### server log messages
+
+It should be clear from the server log when the client asks for new data, when that data hits or misses and when the data is being requested from the external api. How much data is returned (in years and days)
+
+## updating the display
+
+I would also like to bring out control of displayed years from plotly into the html I control.
+
+I would like to remove the current plotly legend and add vertical double (min year, max year) slider with a full range of years (year-40 to year) as the max, but valid data selected as the current range (say, last 15 years if that is all that was returned) shown with the double-slider min/max. The user should be able to move the sliders, but they should have UI constraints to not go out of the valid range of data and not overlap min > max.
+
+Any data outside the range of the sliders should drop.
+
+Add toggles for "Display yearly" and "Display average"
+
+### Color scheme
+
+The colors shown currently (light blue, dark blue) will be changing. What I would like is to use the Perceptually Uniform Sequential viridis color scale from python's matplotlib for the seasons.
+
+## DB Fixes
+
+We should be vigiliant about handling missing data as missing and not coercing it to values like 0 degrees or 0 inches.
