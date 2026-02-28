@@ -69,8 +69,8 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
   const [showAverage, setShowAverage] = useState(true);
   const [minYear, setMinYear] = useState<number>(0);
   const [maxYear, setMaxYear] = useState<number>(0);
-  const [committedMinYear, setCommittedMinYear] = useState<number>(0);
-  const [committedMaxYear, setCommittedMaxYear] = useState<number>(0);
+  const [debouncedMinYear, setDebouncedMinYear] = useState<number>(0);
+  const [debouncedMaxYear, setDebouncedMaxYear] = useState<number>(0);
 
   const yearRange = useMemo(() => {
     const isSnow = metric === 'depths' || metric === 'swes';
@@ -101,10 +101,19 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
     if (yearRange.max > 0) {
       setMinYear(yearRange.min);
       setMaxYear(yearRange.max);
-      setCommittedMinYear(yearRange.min);
-      setCommittedMaxYear(yearRange.max);
+      setDebouncedMinYear(yearRange.min);
+      setDebouncedMaxYear(yearRange.max);
     }
   }, [yearRange, selectedStation]);
+
+  // Debounce effect for the year sliders
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedMinYear(minYear);
+      setDebouncedMaxYear(maxYear);
+    }, 50); // 50ms debounce for smoother sliding
+    return () => clearTimeout(timer);
+  }, [minYear, maxYear]);
 
   const handleMetricChange = (newMetric: 'depths' | 'swes' | 'temps') => {
     startTransition(() => {
@@ -117,8 +126,8 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
   const dataKeys = useMemo(
     () =>
       Object.keys(data || {}).join(',') +
-      `-${committedMinYear}-${committedMaxYear}-${showYearly}-${showAverage}`,
-    [data, committedMinYear, committedMaxYear, showYearly, showAverage],
+      `-${debouncedMinYear}-${debouncedMaxYear}-${showYearly}-${showAverage}`,
+    [data, debouncedMinYear, debouncedMaxYear, showYearly, showAverage],
   );
   useEffect(() => {
     setRevision((r) => r + 1);
@@ -135,34 +144,18 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
     const yearly = keys
       .filter((k) => !k.includes('Average'))
       .map(Number)
-      .filter(
-        (year) =>
-          !isNaN(year) && year >= committedMinYear && year <= committedMaxYear,
-      )
+      .filter((n) => !isNaN(n))
       .sort((a, b) => a - b)
       .map(String);
 
     const averages = keys
       .filter((k) => k.includes('Average'))
-      .filter((k) => {
-        // Average labels are like "1991-1995 Average".
-        // Let's filter if any part of the average range overlaps the slider range
-        const match = k.match(/(\d{4})-(\d{4})/);
-        if (match) {
-          const start = parseInt(match[1]);
-          const end = parseInt(match[2]);
-          return start >= committedMinYear && end <= committedMaxYear;
-        }
-        return true;
-      })
       .sort((a, b) => a.localeCompare(b));
 
-    const finalSeasons = [];
-    if (showAverage) finalSeasons.push(...averages);
-    if (showYearly) finalSeasons.push(...yearly);
+    const finalSeasons = [...averages, ...yearly];
 
     return finalSeasons;
-  }, [data, committedMinYear, committedMaxYear, showYearly, showAverage]);
+  }, [data]);
 
   const latestSeason = useMemo(() => {
     const keys = Object.keys(data || {});
@@ -215,7 +208,6 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
             mode: 'lines',
             name: season,
             text: hoverTexts,
-            //rallen connectgaps: !isAverage, // Connect gaps for yearly data to ensure lines are visible
             hovertemplate: '%{text}<extra></extra>',
             showlegend: false, // Ensure legend is hidden
           };
@@ -232,6 +224,25 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
           const isLatest = trace.name === latestSeason;
           const isHovered = trace.name === hoveredSeason;
           const isAverage = trace.name.includes('Average');
+
+          // Check if this trace should be visible based on slider and toggle state
+          let isVisible = true;
+          if (isAverage) {
+            if (!showAverage) {
+              isVisible = false;
+            } else {
+              const match = trace.name.match(/(\d{4})-(\d{4})/);
+              if (match) {
+                const start = parseInt(match[1]);
+                const end = parseInt(match[2]);
+                isVisible = start >= debouncedMinYear && end <= debouncedMaxYear;
+              }
+            }
+          } else {
+            const year = Number(trace.name);
+            isVisible =
+              showYearly && year >= debouncedMinYear && year <= debouncedMaxYear;
+          }
 
           let color = '#aec7e8'; // Fallback
           let width = isLatest ? 3.0 : 1.5;
@@ -264,10 +275,12 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
             color = 'black';
             width = 3.5;
             opacity = 1;
+            isVisible = true; // Always show hovered trace if it exists
           }
 
           return {
             ...trace,
+            visible: isVisible,
             line: {
               color,
               width,
@@ -276,7 +289,16 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
           };
         })
         .filter(Boolean),
-    [traceData, latestSeason, hoveredSeason, yearRange],
+    [
+      traceData,
+      latestSeason,
+      hoveredSeason,
+      yearRange,
+      debouncedMinYear,
+      debouncedMaxYear,
+      showYearly,
+      showAverage,
+    ],
   );
 
   const handleHover = (event: PlotHoverEvent) => {
@@ -437,16 +459,8 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
                 value={maxYear}
                 onChange={(e) => {
                   const val = Math.max(Number(e.target.value), minYear);
-                  setMaxYear(val);
-                }}
-                onMouseUp={() => {
                   startTransition(() => {
-                    setCommittedMaxYear(maxYear);
-                  });
-                }}
-                onKeyUp={() => {
-                  startTransition(() => {
-                    setCommittedMaxYear(maxYear);
+                    setMaxYear(val);
                   });
                 }}
                 className="absolute appearance-none h-full w-1 bg-transparent cursor-pointer accent-oregon-blue pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-moz-range-thumb]:pointer-events-auto z-20"
@@ -462,16 +476,8 @@ const SnowpackChart = ({ selectedStation }: { selectedStation: string }) => {
                 value={minYear}
                 onChange={(e) => {
                   const val = Math.min(Number(e.target.value), maxYear);
-                  setMinYear(val);
-                }}
-                onMouseUp={() => {
                   startTransition(() => {
-                    setCommittedMinYear(minYear);
-                  });
-                }}
-                onKeyUp={() => {
-                  startTransition(() => {
-                    setCommittedMinYear(minYear);
+                    setMinYear(val);
                   });
                 }}
                 className="absolute appearance-none h-full w-1 bg-transparent cursor-pointer accent-oregon-blue pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-moz-range-thumb]:pointer-events-auto z-20"
